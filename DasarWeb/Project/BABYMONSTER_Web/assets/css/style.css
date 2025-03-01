@@ -1,0 +1,587 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.page {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding: 2rem 2rem;
+}
+
+header.navbar-container {
+    width: 100%;
+    max-width: 1200px;
+    padding-block: 1rem;
+    margin-inline: auto;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+}
+
+header.navbar-container .logo img {
+    width: 200px;
+}
+
+header.navbar-container .nav-list ul {
+    padding-left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem 1rem;
+}
+
+header.navbar-container .nav-list li {
+    list-style-type: none;
+    position: relative;
+}
+
+header.navbar-container .nav-list li a {
+    padding: 0.5rem 1.5rem;
+    text-decoration: none;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: black;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 2px solid transparent;
+}
+
+header.navbar-container .nav-list li a:hover,
+header.navbar-container .nav-list li a.active {
+    border-bottom: 2px solid #950101;
+    color: #950101;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+main {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding: 2rem 4rem;
+    display: flex;
+    align-items: center;
+}
+
+main .profile {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+main .profile .profile-description {
+    flex: 1 1;
+}
+
+main .profile .profile-description .title {
+    margin-block: 1rem;
+    font-size: 3.5rem;
+    font-weight: 800;
+}
+
+main .profile .profile-description p {
+    font-size: 1.2rem;
+    line-height: 1.7rem;
+    font-weight: 500;
+    text-align: justify;
+}
+
+main .profile .profile-image {
+    flex: 1;
+    display: flex;
+}
+
+main .profile .profile-image img {
+    width: 350px;
+    min-width: 300px;
+    margin: auto;
+}
+
+main .member-profile {
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    align-items: center;
+    border-radius: 20px;
+}
+
+main .member-profile header {
+    background-color: #950101;
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+}
+
+main .member-profile h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+main .member-profile .member-content {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+main .member-content .member-image {
+    flex: 1;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+main .member-content .member-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba (0, 0, 0, 0.1);
+}
+
+main .member-content .member-info {
+    flex: 2;
+    padding: 0 0.5rem;
+}
+
+main .member-content .member-info p {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.6;
+    padding: 0.5rem;
+    border-radius: 10px;
+    border-left: 5px solid #950101;
+    text-align: justify;
+    background-color: #FFF8FA;
+}
+
+main .member-content .member-info table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 2rem;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+main .member-info th, .member-info td {
+    padding: 0.8rem 1.3rem;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+main .member-info th {
+    background-color: #950101;
+    color: white;
+    font-weight: 600;
+    width: 40%;
+}
+
+main .member-info td {
+    font-weight: 500;
+}
+
+main .member-info td img {
+    max-width: 150px;
+    height: auto;
+    display: inline-block;
+    margin: 0;
+}
+
+main .member-info tr:nth-child(even) {
+    background-color: #FFF8FA;
+}
+
+main .member-info tr:last-child th, .member-info tr:last-child td {
+    border-bottom: none;
+}
+
+main .member-info .blue {
+    background-color: #1A34A4;
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+main .member-info .silver {
+    background-color: #C9C9C9;
+    color: black;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+main .member-info .pink {
+    background-color: #FF7CDE;
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+main .member-info .white {
+    background-color: #FFFFFF;
+    color: black;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+main .member-info .red {
+    background-color: #FF0000;
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+main .member-info .purple {
+    background-color: #9F05FF;
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+main .member-info .black {
+    background-color: #000000;
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+
+main .discography {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    align-items: center;
+    border-radius: 20px;
+}
+
+main .discography header {
+    background-color: #950101;
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+}
+
+main .discography h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+main .discography .slide-container {
+    display: flex;
+    transition: transform 0.5s ease;
+    width: 100%;
+}
+
+main .discography .slide-container .album-item {
+    flex: 0 0 33.333%;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+main .discography .slide-container .album-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+main .discography .slide-container .album-item h2 {
+    margin-block: 1rem;
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: 700;
+}
+
+main .discography .slide-container .album-item h3 {
+    font-size: 1rem;
+    color: #555;
+    text-align: center;
+    font-weight: 600;
+}
+
+main .discography .slide-container .album-item h4 {
+    font-size: 0.8rem;
+    margin-top: 5px;
+    color: #777;
+    text-align: center;
+    font-weight: 500;
+}
+
+main .discography .slide-controls {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+main .discography .slide-controls .slide-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+main .discography .slide-controls .slide-dot.active {
+    background-color: #950101;
+}
+
+main .fandom {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+main .fandom .fandom-description {
+    flex: 1 1;
+}
+
+main .fandom .fandom-description .title {
+    margin-block: 1rem;
+    font-size: 3.5rem;
+    font-weight: 800;
+}
+
+main .fandom .fandom-description p {
+    font-size: 1.2rem;
+    line-height: 1.7rem;
+    font-weight: 500;
+    text-align: justify;
+}
+
+main .fandom .fandom-image {
+    flex: 1;
+    display: flex;
+}
+
+main .fandom .fandom-image img {
+    width: 300px;
+    min-width: 250px;
+    margin: auto;
+}
+
+main .lightstick {
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    align-items: center;
+    border-radius: 20px;
+    margin-top: 5rem;
+}
+
+main .lightstick header {
+    background-color: #950101;
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+}
+
+main .lightstick h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+main .lightstick .lightstick-content {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+main .lightstick-content .lightstick-image {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+main .lightstick-content .lightstick-image img {
+    max-width: 50%;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba (0, 0, 0, 0.1);
+}
+
+footer {
+    padding: 2rem 2.5rem;
+    background-color: #3D0000;
+    position: relative;
+}
+
+footer .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+footer .footer-container .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5rem;
+}
+
+footer .social-media {
+    display: flex;
+    font-size: 1.5rem;
+    gap: 2rem;
+}
+
+footer .social-media a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+}
+
+footer .social-media a:hover {
+    color: #950101;
+    background-color: white;
+    transform: scale(1.1);
+}
+
+footer .yg-logo img {
+    height: 3rem;
+}
+
+footer .policy-links {
+    text-align: right;
+}
+
+footer .policy-links a {
+    color: #ccc;
+    text-decoration: none;
+    margin-left: 1.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+footer .policy-links a:hover {
+    color: white;
+}
+
+footer .copyright {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #ccc;
+    line-height: 1.5;
+}
+
+@media screen and (max-width: 768px) {
+    header.navbar-container {
+        flex-direction: column;
+    }
+
+    header.navbar-container .nav-list ul {
+        flex-wrap: wrap;
+        column-gap: 0.5rem;
+    }
+
+    main {
+        padding: 1rem 3rem;
+    }
+
+    main .profile {
+        flex-direction: column;
+        gap: 3rem;
+    }
+
+    main .profile .profile-description p {
+        font-size: 1rem;
+    }
+
+    main .profile .profile-image {
+        order: -1;
+    }
+
+    main .discography .slide-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        transform: none !important;
+        gap: 2rem;
+    }
+
+    main .discography .slide-container .album-item {
+        flex: 0 0 100%;
+    }
+
+    main .discography .slide-controls {
+        display: none;
+    }
+
+    main .fandom {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    main .fandom .fandom-description p {
+        font-size: 1rem;
+    }
+
+    main .fandom .fandom-image {
+        order: -1;
+    }
+
+    main .lightstick-content .lightstick-image {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    main .lightstick-content .lightstick-image img {
+        max-width: 100%;
+    }
+
+
+    footer .social-media {
+        gap: 0.8rem;
+    }
+
+    footer .social-icon i {
+        font-size: 1.3rem;
+    }
+}
