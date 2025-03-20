@@ -1,0 +1,92 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Nunito', 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+  
+body {
+    background-color: #F9F7F7;
+    background-image: radial-gradient(#FFDFD3 1px, transparent 1px),
+                      radial-gradient(#B5EAD7 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+  
+main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    width: 100%;
+}
+  
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #B5EAD7;
+    color: #444;
+    padding: 14px 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    opacity: 1;
+    transition: all 0.5s ease;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+}
+  
+.notification.fade-out {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+a, button, input, textarea {
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F9F7F7;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #FFDFD3;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #FF9AA2;
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 16px;
+    }
+    
+    .notification {
+        padding: 12px 20px;
+        max-width: calc(100% - 40px);
+    }
+}
+
+@media (max-width: 480px) {
+    main {
+        padding: 12px;
+    }
+    
+    .notification {
+        left: 20px;
+        right: 20px;
+        padding: 12px 16px;
+        text-align: center;
+        justify-content: center;
+    }
+}
