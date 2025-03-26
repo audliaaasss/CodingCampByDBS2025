@@ -6,10 +6,8 @@ const home = () => {
   const notesData = [...NotesData.getAll()];
   let currentPage = 'home';
 
-  // Initial render
   renderPage();
 
-  // Event listeners
   document.addEventListener('page-change', (event) => {
     currentPage = event.detail.page;
     renderPage();
