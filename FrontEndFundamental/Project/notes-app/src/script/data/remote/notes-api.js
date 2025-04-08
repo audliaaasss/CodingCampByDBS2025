@@ -1,5 +1,3 @@
-import { error } from "console";
-
 const BASE_URL = 'https://notes-api.dicoding.dev/v2';
  
 class NotesApi {
@@ -14,6 +12,12 @@ class NotesApi {
                     message: responseJson.message
                 };
             }
+
+            const notes = responseJson.data.map(note => ({
+                ...note,
+                archived: false
+            }));
+
             return {
                 error: false,
                 data: responseJson.data
@@ -38,6 +42,12 @@ class NotesApi {
                     message: responseJson.message
                 };
             }
+
+            const notes = responseJson.data.map(note => ({
+                ...note,
+                archived: true
+            }));
+
             return {
                 error: false,
                 data: responseJson.data

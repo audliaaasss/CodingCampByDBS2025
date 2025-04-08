@@ -1,41 +1,189 @@
-import NotesData from '../data/local/notes.js';
+import NotesApi from '../data/remote/notes-api.js';
 import Utils from '../utils.js';
 import '../components/note-form.js';
+import '../components/loading-indicator.js';
 
 const home = () => {
-  const notesData = [...NotesData.getAll()];
-  let currentPage = 'home';
+  let notesData = [];
+  let currentPage = localStorage.getItem('currentPage') || 'home';
+  let loadingElement;
+  
+  const initializeApp = async () => {
+    renderLoadingIndicator();
 
-  renderPage();
+    const cachedData = localStorage.getItem('notesBackup');
+    if (cachedData) {
+      try {
+        notesData = JSON.parse(cachedData);
+        renderPage();
+      } catch (e) {
+        console.error('Error parsing cached notes', e);
+      }
+    }
 
-  document.addEventListener('page-change', (event) => {
-    currentPage = event.detail.page;
+    await fetchNotes();
     renderPage();
-  });
+    updateAppBarActiveState();
 
-  document.addEventListener('search', (event) => {
-    const { query } = event.detail;
-    const noteListElement = document.querySelector('note-list');
-    noteListElement.query = query;
-  });
+    document.addEventListener('page-change', (event) => {
+      currentPage = event.detail.page;
+      localStorage.setItem('currentPage', currentPage);
+      renderPage();
+      updateAppBarActiveState();
+    });
 
-  document.addEventListener('add-note', (event) => {
-    const { title, body } = event.detail;
-    const newNote = {
-      id: `notes-${Date.now()}`,
-      title,
-      body,
-      createdAt: new Date().toISOString(),
-      archived: false,
-    };
+    document.addEventListener('search', (event) => {
+      const { query } = event.detail;
+      const noteListElement = document.querySelector('note-list');
+      noteListElement.query = query;
+    });
+
+    document.addEventListener('add-note', async (event) => {
+      const { title, body } = event.detail;
+      
+      showLoading();
+      
+      const result = await NotesApi.addNote({ title, body });
+      
+      if (result.error) {
+        showErrorMessage(result.message);
+      } else {
+        await fetchNotes();
+        renderPage();
+        showSuccessNotification('Note added successfully!');
+      }
+      
+      hideLoading();
+    });
+
+    document.addEventListener('delete-note', async (event) => {
+      const { id } = event.detail;
+      
+      showLoading();
+      
+      const result = await NotesApi.deleteNote(id);
+      
+      if (result.error) {
+        showErrorMessage(result.message);
+      } else {
+        await fetchNotes();
+        renderPage();
+        showSuccessNotification('Note deleted successfully!');
+      }
+      
+      hideLoading();
+    });
+
+    document.addEventListener('archive-note', async (event) => {
+      const { id, archived } = event.detail;
+      
+      showLoading();
+      
+      let result;
+      if (archived) {
+        result = await NotesApi.archiveNote(id);
+      } else {
+        result = await NotesApi.unarchiveNote(id);
+      }
+      
+      if (result.error) {
+        showErrorMessage(result.message);
+      } else {
+        await fetchNotes();
+        renderPage();
+        showSuccessNotification(`Note ${archived ? 'archived' : 'unarchived'} successfully!`);
+      }
+      
+      hideLoading();
+    });
+  };
+
+  const updateAppBarActiveState = () => {
+    const appBar = document.querySelector('app-bar');
+    if (appBar) {
+      const shadowRoot = appBar.shadowRoot;
+      if (shadowRoot) {
+        const navLinks = shadowRoot.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+        });
+
+        const currentNavLink = shadowRoot.getElementById(`${currentPage}-link`);
+        if (currentNavLink) {
+          currentNavLink.classList.add('active');
+        }
+      }
+    }
+  };
+
+  const fetchNotes = async () => {
+    showLoading();
     
-    notesData.unshift(newNote);
-    renderNoteList();
-    
-    // Show notification
+    try {
+      const activeResult = await NotesApi.getAllNotes();
+      const archivedResult = await NotesApi.getArchivedNotes();
+      
+      let allNotes = [];
+      
+      if (!activeResult.error) {
+        allNotes = [...allNotes, ...activeResult.data];
+      } else {
+        showErrorMessage(`Error fetching active notes: ${activeResult.message}`);
+      }
+      
+      if (!archivedResult.error) {
+        allNotes = [...allNotes, ...archivedResult.data];
+      } else {
+        showErrorMessage(`Error fetching archived notes: ${archivedResult.message}`);
+      }
+      
+      if (allNotes.length > 0) {
+        notesData = allNotes;
+        localStorage.setItem('notesBackup', JSON.stringify(notesData));
+      } else {
+        const backupData = localStorage.getItem('notesBackup');
+        if (backupData) {
+          notesData = JSON.parse(backupData);
+          showErrorMessage('Using cached notes data. Some features may be limited.');
+        }
+      }
+    } catch (error) {
+      showErrorMessage(`Unexpected error: ${error.message}`);
+      const backupData = localStorage.getItem('notesBackup');
+      if (backupData) {
+        notesData = JSON.parse(backupData);
+        showErrorMessage('Using cached notes data. Some features may be limited.');
+      }
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const renderLoadingIndicator = () => {
+    loadingElement = document.createElement('loading-indicator');
+    document.body.appendChild(loadingElement);
+  };
+
+  const showLoading = () => {
+    if (loadingElement) {
+      loadingElement.show();
+    }
+  };
+
+  const hideLoading = () => {
+    if (loadingElement) {
+      loadingElement.hide();
+    }
+  };
+
+  const showErrorMessage = (message) => {
+    alert(`Error: ${message}`);
+  };
+
+  const showSuccessNotification = (message) => {
     const notification = document.createElement('div');
     notification.classList.add('notification');
-    notification.textContent = 'Note added successfully!';
+    notification.textContent = message;
     document.body.appendChild(notification);
     Utils.showElement(notification);
     
@@ -46,27 +194,7 @@ const home = () => {
         document.body.removeChild(notification);
       }, 500);
     }, 2000);
-  });
-
-  document.addEventListener('delete-note', (event) => {
-    const { id } = event.detail;
-    const index = notesData.findIndex(note => note.id === id);
-    
-    if (index !== -1) {
-      notesData.splice(index, 1);
-      renderNoteList();
-    }
-  });
-
-  document.addEventListener('archive-note', (event) => {
-    const { id, archived } = event.detail;
-    const index = notesData.findIndex(note => note.id === id);
-    
-    if (index !== -1) {
-      notesData[index].archived = archived;
-      renderNoteList();
-    }
-  });
+  };
 
   function renderPage() {
     const mainElement = document.querySelector('main');
@@ -109,6 +237,8 @@ const home = () => {
       noteListElement.notes = notesData;
     }
   }
+
+  initializeApp();
 };
 
 export default home;
