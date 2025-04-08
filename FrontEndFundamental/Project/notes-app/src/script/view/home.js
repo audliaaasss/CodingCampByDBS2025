@@ -1,4 +1,4 @@
-import NotesData from '../data/notes.js';
+import NotesData from '../data/local/notes.js';
 import Utils from '../utils.js';
 import '../components/note-form.js';
 
