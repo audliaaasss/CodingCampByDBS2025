@@ -1,5 +1,5 @@
 import Utils from '../utils.js';
-import Clubs from '../data/local/clubs.js';
+import SportsApi from '../data/remote/sports-api.js';
 
 const home = () => {
   const searchFormElement = document.querySelector('search-bar');
@@ -7,15 +7,21 @@ const home = () => {
   const clubListContainerElement = document.querySelector('#clubListContainer');
   const clubQueryWaitingElement = clubListContainerElement.querySelector('.query-waiting');
   const clubLoadingElement = clubListContainerElement.querySelector('.search-loading');
+  const clubSearchErrorElement = clubListContainerElement.querySelector('club-search-error');
   const clubListElement = clubListContainerElement.querySelector('club-list');
 
-  const showSportClub = (query) => {
+  const showSportClub = async (query) => {
     showLoading();
 
-    const result = Clubs.searchClub(query);
-    displayResult(result);
+    try {
+      const result = await SportsApi.searchClub(query);
+      displayResult(result);
 
-    showClubList();
+      showClubList();
+    } catch (error) {
+      clubSearchErrorElement.textContent = error.message;
+      showSearchError();
+    }
   };
 
   const onSearchHandler = (event) => {
@@ -26,7 +32,7 @@ const home = () => {
   };
 
   const displayResult = (clubs) => {
-    const clubItems = clubs.map((club) => {
+    const clubItemElement = clubs.map((club) => {
       const clubItemElement = document.createElement('club-item');
       clubItemElement.club = club;
 
@@ -56,6 +62,13 @@ const home = () => {
       Utils.hideElement(element);
     });
     Utils.showElement(clubQueryWaitingElement);
+  };
+
+  const showSearchError = () => {
+    Array.from(clubListContainerElement.children).forEach((element) => {
+      Utils.hideElement(element);
+    });
+    Utils.showElement(clubSearchErrorElement);
   };
 
   searchFormElement.addEventListener('search', onSearchHandler);

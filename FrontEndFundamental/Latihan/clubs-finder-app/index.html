@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Club Finder App</title>
 
-    <!-- Own Styles -->
-    <link rel="icon" href="/src/public/favicon.png" sizes="512x512" />
-
     <!-- Favicons -->
-    <link rel="stylesheet" href="/src/styles/style.css" />
+    <link rel="icon" href="favicon.png" sizes="48x48" />
+
   </head>
+
   <body>
     <header>
       <app-bar></app-bar>
@@ -30,6 +29,7 @@
           <div id="clubListContainer" class="club-list-container">
             <div class="placeholder query-waiting">Waiting for search keyword</div>
             <div class="placeholder search-loading">Loading</div>
+            <club-search-error></club-search-error>
 
             <club-list></club-list>
           </div>
