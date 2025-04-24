@@ -251,6 +251,8 @@ header {
   inset-block-start: 0;
   box-shadow: 0 1px 4px 0 #00000055;
   z-index: 9999;
+
+  view-transition-name: header;
 }
 
 .header-content {
