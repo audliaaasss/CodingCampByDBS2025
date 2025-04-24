@@ -4,7 +4,7 @@ import {
   generateMainNavigationListTemplate,
   generateUnauthenticatedNavigationListTemplate,
 } from '../templates';
-import { setupSkipToContent } from '../utils';
+import { setupSkipToContent, transitionHelper } from '../utils';
 import { getAccessToken, getLogout } from '../utils/auth';
 import { routes } from '../routes/routes';
 
@@ -84,10 +84,17 @@ export default class App {
     // Get page instance
     const page = route();
 
-    this.#content.innerHTML = await page.render();
-    await page.afterRender();
-
-    scrollTo({ top: 0, behavior: 'instant' });
-    this.#setupNavigationList();
+    const transition = transitionHelper({
+      updateDOM: async () => {
+        this.#content.innerHTML = await page.render();
+        await page.afterRender();
+      },
+    });
+    
+    transition.ready.catch(console.error);
+    transition.updateCallbackDone.then(() => {
+      scrollTo({ top: 0, behavior: 'instant' });
+      this.#setupNavigationList();
+    });
   }
 }
