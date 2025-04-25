@@ -1,22 +1,37 @@
 async function startup() {
+  const cameraVideo = document.getElementById('camera-video');
+
   function populateTakenPicture(image) {
     // TODO: show taken picture
   }
 
-  function getStream() {
-    // TODO: generate camera stream
+  async function getStream() {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
   function cameraLaunch(stream) {
-    // TODO: launch camera on video
+    cameraVideo.srcObject = stream;
+    cameraVideo.play();
   }
 
   function cameraTakePicture() {
     // TODO: draw video frame to canvas
   }
 
-  function init() {
-    // TODO: init
+  async function init() {
+    try {
+      const stream = await getStream();
+      cameraLaunch(stream);
+    } catch (error) {
+      console.error(error);
+      alert('Error occurred:', error.message);
+    }
   }
 
   init();
