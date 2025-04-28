@@ -1,8 +1,18 @@
+let width = 320;
+let height = 0;
+
+let streaming = false;
+
 async function startup() {
   const cameraVideo = document.getElementById('camera-video');
+  const cameraCanvas = document.getElementById('camera-canvas');
+  const cameraTakeButton = document.getElementById('camera-take-button');
+  const cameraOutputList = document.getElementById('camera-list-output');
 
   function populateTakenPicture(image) {
-    // TODO: show taken picture
+    cameraOutputList.innerHTML = `
+      <li><img src="${image}" alt=""></li>
+    `;
   }
 
   async function getStream() {
@@ -20,9 +30,34 @@ async function startup() {
     cameraVideo.play();
   }
 
+  cameraVideo.addEventListener('canplay', () => {
+    if (streaming) {
+      return;
+    }
+
+    height = (cameraVideo.videoHeight * width) / cameraVideo.videoWidth;
+
+    cameraVideo.setAttribute('width', width.toString());
+    cameraVideo.setAttribute('height', height.toString());
+    cameraCanvas.setAttribute('width', width.toString());
+    cameraCanvas.setAttribute('height', height.toString());
+
+    streaming = true;
+  });
+
   function cameraTakePicture() {
-    // TODO: draw video frame to canvas
+    const context = cameraCanvas.getContext('2d');
+    cameraCanvas.width = width;
+    cameraCanvas.height = height;
+    context.drawImage(cameraVideo, 0, 0, width, height);
+
+    return cameraCanvas.toDataURL('image/png');
   }
+
+  cameraTakeButton.addEventListener('click', () => {
+    const imageUrl = cameraTakePicture();
+    populateTakenPicture(imageUrl);
+  });
 
   async function init() {
     try {
