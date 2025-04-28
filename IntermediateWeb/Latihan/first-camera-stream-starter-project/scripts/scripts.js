@@ -2,12 +2,14 @@ let width = 320;
 let height = 0;
 
 let streaming = false;
+let currentStream;
 
 async function startup() {
   const cameraVideo = document.getElementById('camera-video');
   const cameraCanvas = document.getElementById('camera-canvas');
   const cameraTakeButton = document.getElementById('camera-take-button');
   const cameraOutputList = document.getElementById('camera-list-output');
+  const cameraListSelect = document.getElementById('camera-list-select');
 
   function populateTakenPicture(image) {
     cameraOutputList.innerHTML = `
@@ -17,12 +19,48 @@ async function startup() {
 
   async function getStream() {
     try {
-      return await navigator.mediaDevices.getUserMedia({
-        video: true,
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: {
+            exact: !streaming ? undefined : cameraListSelect.value,
+          },
+          aspectRatio: 16 / 9,
+          width: 1280,
+          height: 720,
+        },
       });
+
+      await populateCameraList(stream);
+
+      return stream;
     } catch (error) {
       throw error;
     }
+  }
+
+  async function populateCameraList() {
+    try {
+      const enumeratedDevices = await navigator.mediaDevices.enumerateDevices();
+      const list = enumeratedDevices.filter((device) => device.kind === 'videoinput');
+      cameraListSelect.innerHTML = list.reduce((accumulator, device, currentIndex) => {
+        return accumulator.concat(`
+          <option value="${device.deviceId}">
+            ${device.label || `Camera ${currentIndex + 1}`}
+          </option>
+        `);
+      }, '');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  function stopCurrentStream() {
+    if (!(currentStream instanceof MediaStream)) {
+      return;
+    }
+    currentStream.getTracks().forEach((track) => {
+      track.stop();
+    });
   }
 
   function cameraLaunch(stream) {
@@ -54,15 +92,25 @@ async function startup() {
     return cameraCanvas.toDataURL('image/png');
   }
 
+  cameraListSelect.addEventListener('change', async (event) => {
+    currentStream = await getStream();
+    cameraLaunch(currentStream);
+  });
+
   cameraTakeButton.addEventListener('click', () => {
+    stopCurrentStream();
     const imageUrl = cameraTakePicture();
     populateTakenPicture(imageUrl);
   });
 
   async function init() {
     try {
-      const stream = await getStream();
-      cameraLaunch(stream);
+      currentStream = await getStream();
+      cameraLaunch(currentStream);
+
+      currentStream.getVideoTracks().forEach((track) => {
+        console.log(track.getSettings());
+      });
     } catch (error) {
       console.error(error);
       alert('Error occurred:', error.message);
