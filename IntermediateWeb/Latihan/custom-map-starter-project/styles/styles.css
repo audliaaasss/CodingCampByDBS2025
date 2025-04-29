@@ -1,0 +1,6 @@
+.map {
+  position: absolute;
+  inset: 0;
+
+  background-color: gray;
+}
