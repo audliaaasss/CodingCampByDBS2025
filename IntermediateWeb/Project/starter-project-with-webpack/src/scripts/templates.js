@@ -150,9 +150,9 @@ export function generateModalTemplate(content) {
 
 export function generateAddStoryButtonTemplate() {
     return `
-        <button id="add-story-button" class="btn add-story-button">
+        <a href="#/add" id="add-story-button" class="btn add-story-button">
             Add New Story <i class="fas fa-plus"></i>
-        </button>
+        </a>
     `;
 }
 
