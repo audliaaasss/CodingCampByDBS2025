@@ -69,30 +69,32 @@ export function generateStoryDetailTemplate({
     const createdAtFormatted = showFormattedDate(createdAt);
 
     return `
-        <div class="story-detail__header">
-            <h1 class="story-detail__title">Story by ${name}</h1>
+        <div class="container">
+            <div class="story-detail__header">
+                <h1 class="story-detail__title">Story by ${name}</h1>
 
-            <div class="story-detail__more-info">
-                <div class="story-detail__createdat" data-value="${createdAtFormatted}">
-                    <i class="far fa-calendar-alt"></i> ${createdAtFormatted}
+                <div class="story-detail__more-info">
+                    <div class="story-detail__createdat" data-value="${createdAtFormatted}">
+                        <i class="far fa-calendar-alt"></i> ${createdAtFormatted}
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="container">
             <div class="story-detail__image__container">
                 <img class="story-detail__image" src="${photoUrl}" alt="${description}">
             </div>
-        </div>
 
-        <div class="container">
             <div class="story-detail__body">
                 <div class="story-detail__body__description__container">
-                    <h2 class="story-detail__description__title">Story</h2>
+                    <h2 class="story-detail__description__title">Story Content</h2>
                     <div class="story-detail__description__body">
                         ${description}
                     </div>
                 </div>
+            </div>
+            
+            <div class="story-detail__actions">
+                <a href="#/" class="btn">Back to Stories</a>
             </div>
         </div>
     `;
