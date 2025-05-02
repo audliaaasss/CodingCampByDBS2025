@@ -1,0 +1,442 @@
+/* Mobile First Responsive Styles */
+/* Small devices (smartphones) */
+@media screen and (max-width: 576px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .story-detail__title {
+        font-size: 1.5rem;
+    }
+    
+    .story-item__description {
+        -webkit-line-clamp: 2;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-container, 
+    .register-container {
+        padding: 1rem;
+    }
+    
+    .login-form-container,
+    .register-form-container {
+        padding: 1.5rem;
+    }
+    
+    .photo-options {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .location-inputs {
+        flex-direction: column;
+    }
+    
+    .camera-select-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .camera-controls {
+        flex-direction: column;
+    }
+    
+    .footer {
+        padding: 1rem 0;
+        text-align: center;
+    }
+    
+    /* Navigation adjustments for mobile */
+    .navigation-drawer {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .nav-list li a {
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Enhance touch targets for better mobile experience */
+    .btn, 
+    input[type="submit"],
+    input[type="button"],
+    .drawer-button,
+    .drawer-close {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Adjust story cards for better mobile viewing */
+    .story-item__image {
+        height: 150px;
+    }
+    
+    .story-item__author {
+        font-size: 1.1rem;
+    }
+    
+    /* Make maps more mobile-friendly */
+    #stories-map,
+    #detail-map-container {
+        height: 250px !important;
+    }
+    
+    /* Adjust form layouts */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    textarea, 
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"] {
+        padding: 0.625rem 0.875rem;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+}
+  
+  /* Medium devices (tablets) */
+@media screen and (min-width: 577px) and (max-width: 768px) {
+    .container {
+        padding: 0 1.25rem;
+    }
+    
+    .stories-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .form-actions {
+        justify-content: flex-end;
+    }
+    
+    .location-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .location-inputs button {
+        grid-column: span 2;
+    }
+    
+    /* Adjust navigation for tablets */
+    .nav-list li a {
+        padding: 0.75rem;
+    }
+    
+    /* Maps for tablet view */
+    #stories-map,
+    #detail-map-container {
+        height: 350px !important;
+    }
+    
+    /* Improve story detail layout */
+    .story-detail__body {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .story-detail__image__container {
+        margin-bottom: 0;
+    }
+}
+  
+  /* Large devices (desktops) */
+@media screen and (min-width: 769px) and (max-width: 999px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+    
+    .stories-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .add-story-form-container {
+        width: 80%;
+        margin: 0 auto;
+    }
+    
+    /* Two column layout for story detail on larger screens */
+    .story-detail__content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+    
+    .story-detail__image__container {
+        grid-column: 1;
+        margin-bottom: 0;
+    }
+    
+    .story-detail__body {
+        grid-column: 2;
+    }
+    
+    .story-detail__location,
+    .story-detail__actions {
+        grid-column: 1 / -1;
+    }
+}
+  
+  /* Extra large devices */
+@media screen and (min-width: 1200px) {
+    .container {
+        padding: 0 2rem;
+    }
+    
+    .stories-list {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+    }
+    
+    .add-story-form-container {
+        width: 70%;
+        margin: 0 auto;
+    }
+    
+    .login-form-container,
+    .register-form-container {
+        padding: 2.5rem;
+    }
+    
+    /* Two column layout for story detail on larger screens */
+    .story-detail__content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2.5rem;
+    }
+    
+    /* Maps for large screens */
+    #stories-map,
+    #detail-map-container {
+        height: 500px !important;
+    }
+}
+  
+  /* Footer styles */
+.footer {
+    background-color: var(--neutral-dark);
+    color: var(--white);
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+  
+  /* Improved focus styles for better accessibility */
+:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+  
+  /* Better form inputs on mobile */
+@media screen and (max-width: 768px) {
+    input, select, textarea, button {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+    
+    /* Show drawer on swipe from left edge */
+    .navigation-drawer.open {
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    /* Improved touch area for links */
+    .nav-list li a,
+    .story-item__read-more {
+        padding: 0.8rem;
+    }
+    
+    /* Make sure buttons are easy to tap */
+    .btn {
+        padding: 0.8rem 1.5rem;
+    }
+    
+    /* Ensure forms are comfortable to use on mobile */
+    .form-container {
+        padding: 1.5rem;
+    }
+}
+  
+  /* High contrast mode support */
+@media (prefers-contrast: more) {
+    :root {
+        --primary-color: #D4A000;
+        --primary-light: #BF9B00;
+        --neutral-light: #5E5E5E;
+        --neutral-dark: #282828;
+    }
+    
+    .btn, 
+    input[type="submit"] {
+        border: 2px solid var(--black);
+    }
+    
+    .story-item {
+        border: 1px solid var(--neutral-dark);
+    }
+}
+  
+  /* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --white: #121212;
+        --black: #F8F8F8;
+        --background: #1E1E1E;
+        --neutral-dark: #D4D4D4;
+        --neutral-light: #A0A0A0;
+    }
+    
+    .story-item,
+    .form-container,
+    .login-form-container,
+    .register-form-container,
+    .story-detail__location {
+        background-color: #2A2A2A;
+    }
+    
+    input, 
+    textarea,
+    select {
+        background-color: #333;
+        color: var(--white);
+        border-color: #555;
+    }
+    
+    .camera-select-container,
+    .camera-controls {
+        background-color: #333;
+    }
+    
+    header {
+        background-color: #1A1A1A;
+    }
+}
+  
+  /* Additional Responsive Adjustments */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}
+  
+  /* Touch-specific enhancements */
+@media (hover: none) {
+    .btn:hover {
+        transform: none;
+    }
+    
+    .story-item:hover {
+        transform: none;
+    }
+    
+    /* Add visual feedback for touch */
+    .btn:active,
+    .story-item:active {
+        transform: scale(0.98);
+    }
+}
+  
+  /* Landscape orientation adjustments */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .stories-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .navigation-drawer {
+        padding-top: 1rem;
+    }
+    
+    .login-container,
+    .register-container {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    
+    #stories-map,
+    #detail-map-container {
+        height: 200px !important;
+    }
+}
+  
+  /* Make sure modals are usable on small screens */
+.modal {
+    padding: 1rem;
+}
+  
+@media screen and (max-width: 576px) {
+    .modal-content {
+        width: 95%;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+  
+  /* Print styles for better printing experience */
+@media print {
+    body {
+        background: white;
+        font-size: 12pt;
+    }
+    
+    header, 
+    footer,
+    .navigation-drawer,
+    .drawer-button,
+    .story-item__actions,
+    .form-actions,
+    #stories-map,
+    #detail-map-container {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        padding: 0;
+    }
+    
+    .story-detail__image {
+        max-height: 300px;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+        font-size: 90%;
+    }
+}
