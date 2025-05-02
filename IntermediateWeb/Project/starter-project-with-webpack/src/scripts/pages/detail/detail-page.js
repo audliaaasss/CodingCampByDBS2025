@@ -5,9 +5,12 @@ import {
 import DetailPresenter from './detail-presenter';
 import { parseActivePathname } from '../../routes/url-parser';
 import * as StoryAPI from '../../data/api';
+import Map from '../../utils/map';
+import 'leaflet/dist/leaflet.css';
 
 export default class DetailPage {
     #presenter = null;
+    #map = null;
 
     async render() {
         return `
@@ -29,13 +32,67 @@ export default class DetailPage {
         this.#presenter.showStoryDetail();
     }
 
-    populateStoryDetail(messae, story) {
+    populateStoryDetail(message, story) {
         document.getElementById('story-detail').innerHTML = generateStoryDetailTemplate({
             name: story.name,
             description: story.description,
             photoUrl: story.photoUrl,
             createdAt: story.createdAt,
         });
+
+        if (story.lat && story.lon) {
+            this._addLocationMap(story.lat, story.lon, story.name);
+        }
+    }
+
+    async _addLocationMap(lat, lon, name) {
+        const mapContainer = document.createElement('div');
+        mapContainer.id = 'detail-map-container';
+        mapContainer.style.height = '300px';
+        mapContainer.style.marginTop = '20px';
+
+        const mapHeader = document.createElement('h2');
+        mapHeader.className = 'story-detail__location__title';
+        mapHeader.textContent = 'Story Location';
+
+        const locationInfo = document.createElement('div');
+        locationInfo.className = 'story-location-info';
+        locationInfo.innerHTML = `
+            <p>Latitude: ${lat}</p>
+            <p>Longitude: ${lon}</p>
+        `;
+
+        const locationSection = document.createElement('div');
+        locationSection.className = 'story-detail__location';
+        locationSection.appendChild(mapHeader);
+        locationSection.appendChild(locationInfo);
+        locationSection.appendChild(mapContainer);
+
+        const storyDetailElement = document.querySelector('.story-detail__container');
+        storyDetailElement.appendChild(locationSection);
+
+        try {
+            this.#map = await Map.build('#detail-map-container', {
+                center: [lat, lon],
+                zoom: 13
+            });
+
+            this.#map.addMarker([lat, lon], {}, {
+                content: `<strong>Story by ${name}</strong>`
+            });
+
+            try {
+                const placeName = await Map.getPlaceNameByCoordinate(lat, lon);
+                if (placeName) {
+                    locationInfo.innerHTML += `<p>Location: ${placeName}</p>`;
+                }
+            } catch (error) {
+                console.error('Error getting place name:', error);
+            }
+        } catch (error) {
+            console.error('Error initializing map:', error);
+            mapContainer.innerHTML = '<p>Unable to load map. Please try again later.</p>';
+        }
     }
 
     populateStoryDetailError(messae) {

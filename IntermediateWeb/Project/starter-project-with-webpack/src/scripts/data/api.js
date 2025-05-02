@@ -50,7 +50,7 @@ export async function getLogin({ email, password }) {
 export async function getAllStories() {
     const accessToken = getAccessToken();
 
-    const fetchResponse = await fetch (ENDPOINTS.GET_STORIES, {
+    const fetchResponse = await fetch (`${ENDPOINTS.GET_STORIES}?location=1`, {
         headers: { Authorization: `Bearer ${accessToken}` },
     });
     const json = await fetchResponse.json();

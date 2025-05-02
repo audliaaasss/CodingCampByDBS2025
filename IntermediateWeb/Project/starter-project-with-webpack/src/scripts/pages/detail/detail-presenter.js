@@ -17,14 +17,19 @@ export default class DetailPresenter {
 
             if (!response.ok) {
                 console.error('showStoryDetail: response:', response);
-                this.#view.populateStoryDetailError(response.error);
+                this.#view.populateStoryDetailError(response.message);
                 return;
             }
 
             const story = response.story;
-            console.log(story);
 
-            this.#view.populateStoryDetail(response.message, story);
+            const processedStory = {
+                ...story,
+                lat: story.lat || null,
+                lon: story.lon || null
+            };
+
+            this.#view.populateStoryDetail(response.message, processedStory);
         } catch (error) {
             console.error('showStoryDetail: error:', error);
             this.#view.populateStoryDetailError(error.message);

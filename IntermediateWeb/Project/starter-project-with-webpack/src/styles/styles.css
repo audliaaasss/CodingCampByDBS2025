@@ -98,6 +98,94 @@ header {
     padding-block: 20px;
 }
 
+/* Camera container styles */
+.camera-container {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.camera-controls {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+}
+
+/* Photo options */
+.photo-options {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Map styles */
+#map-container, #detail-map-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#map-instructions {
+    color: #666;
+    font-style: italic;
+}
+
+/* Location section */
+.story-detail__location {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-radius: 4px;
+}
+
+.story-detail__location__title {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.story-location-info {
+    margin-bottom: 15px;
+}
+
+.story-location-info p {
+    margin-bottom: 5px;
+}
+
+/* Form location section */
+.form-location {
+    margin-bottom: 20px;
+}
+
+.location-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.location-input {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* Image preview */
+.image-preview {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    max-width: 100%;
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 4px;
+    min-height: 50px;
+}
+
+/* Make sure our Leaflet map controls appear above other elements */
+.leaflet-top, .leaflet-bottom {
+    z-index: 999 !important;
+}
+
 /* Write your styles more here */
 
 @media screen and (width > 1000px) {

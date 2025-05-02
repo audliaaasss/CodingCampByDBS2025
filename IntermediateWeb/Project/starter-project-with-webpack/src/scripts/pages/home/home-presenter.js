@@ -20,6 +20,13 @@ export default class HomePresenter {
             }
 
             const { listStory } = response;
+
+            const processedStories = listStory.map(story => ({
+                ...story,
+                lat: story.lat ? parseFloat(story.lat) : null,
+                lon: story.lon ? parseFloat(story.lon) : null
+            }));
+
             this.#view.populateStories(listStory);
         } catch (error) {
             console.error('initialStories: error:', error);
