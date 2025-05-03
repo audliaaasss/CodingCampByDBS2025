@@ -31,7 +31,7 @@ export default class AddPage {
                         <div class="form-group">
                             <label for="photo">Photo</label>
                             <div class="photo-options">
-                                <input type="file" id="photo" name="photo" accept="image/*" required>
+                                <button type="button" id="choose-file" class="btn">Choose File</button>
                                 <button type="button" id="use-camera" class="btn">Use Camera</button>
                             </div>
                             <div id="camera-container" class="camera-container" style="display: none;">
@@ -86,9 +86,39 @@ export default class AddPage {
         });
 
         this._setupForm();
+        this._setupFileInput();
         this._setupImagePreview();
         this._setupCamera();
         await this._setupMap();
+
+        window.addEventListener('hashchange', () => {
+            this._stopCameraStream();
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            this._stopCameraStream();
+        });
+    }
+
+    _setupImagePreview() {
+        const photoInput = document.getElementById('photo');
+        this.#imagePreview = document.getElementById('image-preview');
+    
+        if (photoInput) { 
+            photoInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+    
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.#imagePreview.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px;">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
     }
 
     async _setupMap() {
@@ -176,7 +206,6 @@ export default class AddPage {
             cameraSelect.appendChild(option);
         });
         
-        // Show switch camera button if more than one camera
         const switchCameraBtn = document.getElementById('switch-camera');
         if (videoDevices.length > 1) {
             switchCameraBtn.style.display = 'inline-block';
@@ -204,15 +233,34 @@ export default class AddPage {
                 this.#currentCameraId = this.#availableCameras[0].deviceId;
             }
             
-            // If no labels are available, request permission first
             if (this.#availableCameras.length > 0 && !this.#availableCameras[0].label) {
                 await this._populateCameraSelect();
             }
             
-            // Update the select to match current camera
             const cameraSelect = document.getElementById('camera-select');
             if (this.#currentCameraId && cameraSelect) {
                 cameraSelect.value = this.#currentCameraId;
+            }
+
+            const cameraContainer = document.getElementById('camera-container');
+            const indicatorExists = cameraContainer.querySelector('.camera-active-indicator');
+        
+            if (!indicatorExists) {
+                const activeIndicator = document.createElement('div');
+                activeIndicator.className = 'camera-active-indicator';
+                activeIndicator.style.cssText = 'position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; background-color: #ff0000; border-radius: 50%; animation: pulse 1.5s infinite;';
+                cameraContainer.style.position = 'relative';
+                cameraContainer.appendChild(activeIndicator);
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                        100% { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
             }
         } catch (error) {
             console.error('Error starting camera:', error);
@@ -233,6 +281,61 @@ export default class AddPage {
         this._startCamera(nextCameraId);
     }
 
+    _setupFileInput() {
+        const fileInputExists = document.getElementById('photo');
+        let fileInput;
+    
+        if (!fileInputExists) {
+            fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.id = 'photo';
+            fileInput.name = 'photo';
+            fileInput.accept = 'image/jpeg,image/png,image/jpg';
+            fileInput.style.display = 'none';
+            fileInput.required = true;
+        
+            document.getElementById('add-story-form').appendChild(fileInput);
+        } else {
+            fileInput = fileInputExists;
+            fileInput.accept = 'image/jpeg,image/png,image/jpg';
+        }
+    
+        const chooseFileButton = document.getElementById('choose-file');
+        chooseFileButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput.click();
+        });
+    
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+        
+            if (file) {
+                document.getElementById('photo').required = false;
+            
+                const fileName = file.name;
+                this.#imagePreview.innerHTML = `
+                    <div class="selected-file">
+                        <span class="file-name">${fileName}</span>
+                    </div>
+                `;
+            
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.#imagePreview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px;">
+                        <div class="selected-file">
+                            <span class="file-name">${fileName}</span>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                this.#imagePreview.innerHTML = '';
+                document.getElementById('photo').required = true;
+            }
+        });
+    }
+
     _setupCamera() {
         const useCamera = document.getElementById('use-camera');
         const cameraContainer = document.getElementById('camera-container');
@@ -246,13 +349,10 @@ export default class AddPage {
             e.preventDefault();
             
             try {
-                // Request permissions first to get labeled devices
                 await navigator.mediaDevices.getUserMedia({ video: true });
                 
-                // Now enumerate cameras with labels
                 await this._populateCameraSelect();
                 
-                // Start the default camera
                 await this._startCamera();
                 
                 cameraContainer.style.display = 'block';
@@ -314,9 +414,29 @@ export default class AddPage {
     
     _stopCameraStream() {
         if (this.#cameraStream) {
-            this.#cameraStream.getTracks().forEach(track => track.stop());
+            this.#cameraStream.getTracks().forEach(track => {
+                if (track.readyState === 'live') {
+                    track.stop();
+                    console.log('Camera track stopped successfully');
+                }
+            });
+            
             this.#cameraStream = null;
-            this.#videoElement.srcObject = null;
+            
+            if (this.#videoElement) {
+                this.#videoElement.srcObject = null;
+                this.#videoElement.load(); 
+            }
+            
+            const cameraContainer = document.getElementById('camera-container');
+            if (cameraContainer) {
+                const indicator = cameraContainer.querySelector('.camera-active-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+            
+            console.log('Camera stream stopped completely');
         }
     }
 
@@ -324,6 +444,8 @@ export default class AddPage {
         this.#form = document.getElementById('add-story-form');
         this.#form.addEventListener('submit', async (event) => {
             event.preventDefault();
+
+            this._stopCameraStream();
 
             const description = document.getElementById('description').value;
             const photoUrl = document.getElementById('photo').files[0];
@@ -336,25 +458,6 @@ export default class AddPage {
                 lat: latitude,
                 lon: longitude,
             });
-        });
-    }
-
-    _setupImagePreview() {
-        const photoInput = document.getElementById('photo');
-        this.#imagePreview = document.getElementById('image-preview');
-
-        photoInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.#imagePreview.innerHtml = `
-                        <img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px;">
-                    `;
-                };
-                reader.readAsDataURL(file);
-            }
         });
     }
 
@@ -409,6 +512,7 @@ export default class AddPage {
     }
 
     navigateToHome() {
+        this._stopCameraStream();
         window.location.hash = '/';
     }
 }

@@ -69,7 +69,9 @@ export default class RegisterPage {
     registeredSuccessfully(message) {
         console.log(message);
 
-        location.hash = '/login';
+        setTimeout(() => {
+            location.hash = '/login';
+        }, 100);
     }
 
     registeredFailed(message) {

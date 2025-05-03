@@ -117,11 +117,6 @@ header {
     gap: 0.5rem;
 }
   
-.brand-name:before {
-    content: "📖";
-    display: inline-block;
-}
-  
 .brand-name:hover {
     color: var(--neutral-dark);
 }
@@ -404,6 +399,7 @@ header {
   
   /* ---- Map Styles ---- */
 .map-container {
+    position: sticky;
     margin-bottom: 2rem;
 }
   
@@ -418,6 +414,7 @@ header {
     border-radius: var(--border-radius-md);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
+    transition: height var(--transition-medium);
 }
   
 #map-instructions {

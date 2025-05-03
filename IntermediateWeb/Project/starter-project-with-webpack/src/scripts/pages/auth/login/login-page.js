@@ -63,7 +63,9 @@ export default class LoginPage {
     loginSuccessfully(message) {
         console.log(message);
 
-        location.hash = '/';
+        setTimeout(() => {
+            location.hash = '/';
+        }, 100);
     }
 
     loginFailed(message) {
