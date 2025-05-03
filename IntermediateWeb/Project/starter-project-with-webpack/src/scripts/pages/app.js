@@ -1,22 +1,30 @@
 import routes from '../routes/routes';
 import { getActiveRoute, getActivePathname } from '../routes/url-parser';
 import { getAccessToken, getLogout } from '../utils/auth';
+import PageTransition from './transition';
 
 class App {
     #content = null;
     #drawerButton = null;
     #navigationDrawer = null;
     #navList = null;
+    #pageTransition = null;
+    #currentPath = null;
+    #previousPath = null;
 
     constructor({ navigationDrawer, drawerButton, content }) {
         this.#content = content;
         this.#drawerButton = drawerButton;
         this.#navigationDrawer = navigationDrawer;
         this.#navList = document.querySelector('#nav-list');
+        this.#pageTransition = PageTransition.for(this.#content);
+
+        this.#content.classList.add('content-container');
 
         this._setupDrawer();
         this._setupLogout();
         this._updateNavigation();
+        this._setupNavigationTracking();
     }
 
     _setupDrawer() {
@@ -46,6 +54,16 @@ class App {
         });
     }
 
+    _setupNavigationTracking() {
+        window.addEventListener('hashchange', (event) => {
+            const oldURL = new URL(event.oldURL).hash.substring(1);
+            const newURL = new URL(event.newURL).hash.substring(1);
+            
+            this.#previousPath = oldURL;
+            this.#currentPath = newURL;
+        });
+    }
+
     _updateNavigation() {
         const currentPath = getActivePathname();
 
@@ -67,9 +85,16 @@ class App {
         const page = routes[url];
 
         if (page) {
-            this.#content.innerHTML = await page.render();
-            await page.afterRender();
-            this._updateNavigation();
+            const transitionType = PageTransition.determineTransitionType(
+                this.#previousPath,
+                this.#currentPath
+            );
+            
+            await this.#pageTransition.transition(transitionType, async () => {
+                this.#content.innerHTML = await page.render();
+                await page.afterRender();
+                this._updateNavigation();
+            });
         } else {
             if (!getAccessToken()) {
                 location.hash = '/login';
