@@ -18,9 +18,9 @@ export default class HomePage {
     async render() {
         return `
             <section class="container">
-                <h1 class="section-title">Stories</h1>
+                <h1 class="section-title animate-fade-in">Stories</h1>
         
-                <div class="add-story-container">
+                <div class="add-story-container animate-fade-in delay-100">
                     ${generateAddStoryButtonTemplate()}
                 </div>
 
@@ -64,7 +64,8 @@ export default class HomePage {
             return;
         }
 
-        const html = stories.reduce((accumulator, story) => {
+        const html = stories.reduce((accumulator, story, index) => {
+            const animationDelay = Math.min(index * 100, 500);
             return accumulator.concat(
                 generateStoryItemTemplate({
                     id: story.id,
@@ -72,6 +73,7 @@ export default class HomePage {
                     description: story.description,
                     photoUrl: story.photoUrl,
                     createdAt: story.createdAt,
+                    animationDelay
                 }),
             );
         }, '');
@@ -140,7 +142,7 @@ export default class HomePage {
 
     showSuccessMessage(message) {
         const successMessage = document.createElement('div');
-        successMessage.className = 'success-messae';
+        successMessage.className = 'success-messae animate-scale-up';
         successMessage.textContent = message;
 
         document.body.appendChild(successMessage);
@@ -152,7 +154,7 @@ export default class HomePage {
 
     showErrorMessage(message) {
         const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
+        errorMessage.className = 'error-message animate-scale-up';
         errorMessage.textContent = message;
 
         document.body.appendChild(errorMessage);

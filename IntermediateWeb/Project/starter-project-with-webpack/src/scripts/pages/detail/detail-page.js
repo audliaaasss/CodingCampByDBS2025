@@ -15,7 +15,7 @@ export default class DetailPage {
     async render() {
         return `
             <section>
-                <div class="story-detail__container">
+                <div class="story-detail__container animate-fade-in">
                     <div id="story-detail" class="story-detail"></div>
                     <div id="story-detail-loading-container"></div>
                 </div>
@@ -40,6 +40,16 @@ export default class DetailPage {
             createdAt: story.createdAt,
         });
 
+        const storyTitle = document.querySelector('.story-detail h1');
+        if (storyTitle) {
+            storyTitle.classList.add('animate-fade-in');
+        }
+
+        const storyDescription = document.querySelector('.story-detail__description');
+        if (storyDescription) {
+            storyDescription.classList.add('animate-fade-in', 'delay-100');
+        }
+
         if (story.lat && story.lon) {
             this._addLocationMap(story.lat, story.lon, story.name);
         }
@@ -52,11 +62,11 @@ export default class DetailPage {
         mapContainer.style.marginTop = '20px';
 
         const mapHeader = document.createElement('h2');
-        mapHeader.className = 'story-detail__location__title';
+        mapHeader.className = 'story-detail__location__title animate-fade-in delay-200';
         mapHeader.textContent = 'Story Location';
 
         const locationInfo = document.createElement('div');
-        locationInfo.className = 'story-location-info';
+        locationInfo.className = 'story-location-info animate-fade-in delay-300';
         locationInfo.innerHTML = `
             <p>Latitude: ${lat}</p>
             <p>Longitude: ${lon}</p>
@@ -84,8 +94,10 @@ export default class DetailPage {
             try {
                 const placeName = await Map.getPlaceNameByCoordinate(lat, lon);
                 if (placeName) {
-                    locationInfo.innerHTML += `<p>Location: ${placeName}</p>`;
-                }
+                    const placeElement = document.createElement('p');
+                    placeElement.className = 'animate-fade-in delay-400';
+                    placeElement.textContent = `Location: ${placeName}`;
+                    locationInfo.appendChild(placeElement);                }
             } catch (error) {
                 console.error('Error getting place name:', error);
             }
@@ -97,7 +109,7 @@ export default class DetailPage {
 
     populateStoryDetailError(messae) {
         document.getElementById('story-detail').innerHTML = `
-            <div class="story-detail__error">
+            <div class="story-detail__error animate-fade-in">
                 <h2>Error Loading Story</h2>
                 <p>${messae ? messae : 'Please try using a different network or report this error.'}</p>
             </div>
