@@ -1,128 +1,102 @@
-/* Page Transitions Styles */
-.content-container {
-    position: relative;
-    min-height: 100vh;
-    will-change: transform, opacity;
-    overflow-x: hidden;
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.page-transition-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #ffffff;
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
+::view-transition-old(root) {
+    animation-name: fade-out;
 }
 
-/* Optimizations for animations */
-.stories-list__container,
-.story-detail__container,
-.login-container,
-.register-container,
-.add-story-form-container {
-    will-change: transform, opacity;
+::view-transition-new(root) {
+    animation-name: fade-in;
 }
 
-/* Animation modifier classes that can be added to elements */
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out forwards;
+.home-page-transition {
+    view-transition-name: home-page;
 }
 
-.animate-slide-in {
-    animation: slideInFromRight 0.5s ease-out forwards;
+::view-transition-old(home-page),
+::view-transition-new(home-page) {
+    animation-duration: 0.7s;
 }
 
-.animate-scale-up {
-    animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.detail-page-transition {
+    view-transition-name: detail-page;
 }
 
-/* Delay utilities */
-.delay-100 {
-    animation-delay: 100ms;
+::view-transition-old(detail-page),
+::view-transition-new(detail-page) {
+    animation-duration: 0.5s;
 }
 
-.delay-200 {
-    animation-delay: 200ms;
+.auth-page-transition {
+    view-transition-name: auth-page;
 }
 
-.delay-300 {
-    animation-delay: 300ms;
+::view-transition-old(auth-page),
+::view-transition-new(auth-page) {
+    animation-duration: 0.3s;
 }
 
-/* Animation for components to enhance page transitions */
-.stories-list {
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out 0.2s forwards;
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.map-container {
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out 0.1s forwards;
+@keyframes fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
 }
 
-.story-detail img {
-    opacity: 0;
-    animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+@keyframes slide-in-from-right {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-.story-detail__location {
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out 0.4s forwards;
+@keyframes slide-out-to-left {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
 }
 
-.login-form-container,
-.register-form-container {
-    opacity: 0;
-    animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s forwards;
+.content-with-transition {
+    view-transition-name: content-transition;
 }
 
-.add-story-form {
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out 0.2s forwards;
+::view-transition-old(content-transition),
+::view-transition-new(content-transition) {
+    animation-duration: 0.6s;
 }
 
-/* Staggered animation for story items */
-.stories-list > div {
-    opacity: 0;
+.story-card-transition {
+    view-transition-name: story-card;
 }
 
-.stories-list > div:nth-child(1) {
-    animation: fadeIn 0.5s ease-out 0.1s forwards;
-}
-
-.stories-list > div:nth-child(2) {
-    animation: fadeIn 0.5s ease-out 0.2s forwards;
-}
-
-.stories-list > div:nth-child(3) {
-    animation: fadeIn 0.5s ease-out 0.3s forwards;
-}
-
-.stories-list > div:nth-child(n+4) {
-    animation: fadeIn 0.5s ease-out 0.4s forwards;
-}
-
-/* Ensure navigation elements don't get affected by transitions */
-#nav-list {
-    transition: none !important;
-}
-
-/* Camera container animations */
-#camera-container {
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-}
-
-#camera-container.active {
-    opacity: 1;
-}
-
-/* Better handling of loaders during transitions */
-.loader-button {
-    opacity: 1 !important;
+::view-transition-old(story-card),
+::view-transition-new(story-card) {
+    animation-duration: 0.4s;
 }

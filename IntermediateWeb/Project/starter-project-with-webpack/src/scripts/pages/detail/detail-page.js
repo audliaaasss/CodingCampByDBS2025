@@ -7,6 +7,7 @@ import { parseActivePathname } from '../../routes/url-parser';
 import * as StoryAPI from '../../data/api';
 import Map from '../../utils/map';
 import 'leaflet/dist/leaflet.css';
+import '../../../styles/transition.css';
 
 export default class DetailPage {
     #presenter = null;
@@ -15,7 +16,7 @@ export default class DetailPage {
     async render() {
         return `
             <section>
-                <div class="story-detail__container animate-fade-in">
+                <div class="story-detail__container animate-fade-in detail-page-transition">
                     <div id="story-detail" class="story-detail"></div>
                     <div id="story-detail-loading-container"></div>
                 </div>
@@ -43,11 +44,12 @@ export default class DetailPage {
         const storyTitle = document.querySelector('.story-detail h1');
         if (storyTitle) {
             storyTitle.classList.add('animate-fade-in');
+            storyTitle.style.viewTransitionName = 'story-title';
         }
 
         const storyDescription = document.querySelector('.story-detail__description');
         if (storyDescription) {
-            storyDescription.classList.add('animate-fade-in', 'delay-100');
+            storyDescription.classList.add('animate-fade-in', 'delay-100', 'content-with-transition');
         }
 
         if (story.lat && story.lon) {
@@ -60,6 +62,7 @@ export default class DetailPage {
         mapContainer.id = 'detail-map-container';
         mapContainer.style.height = '300px';
         mapContainer.style.marginTop = '20px';
+        mapContainer.classList.add('content-with-transition');
 
         const mapHeader = document.createElement('h2');
         mapHeader.className = 'story-detail__location__title animate-fade-in delay-200';

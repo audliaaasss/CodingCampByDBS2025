@@ -2,6 +2,7 @@ import routes from '../routes/routes';
 import { getActiveRoute, getActivePathname } from '../routes/url-parser';
 import { getAccessToken, getLogout } from '../utils/auth';
 import PageTransition from './transition';
+import { transitionHelper } from '../utils';
 
 class App {
     #content = null;
@@ -23,8 +24,49 @@ class App {
 
         this._setupDrawer();
         this._setupLogout();
+        this._setupSkipToContent();
         this._updateNavigation();
         this._setupNavigationTracking();
+
+        this._setupViewTransition();
+    }
+
+    _setupViewTransition() {
+        if (!document.querySelector('#view-transitions-style')) {
+            const style = document.createElement('style');
+            style.id = 'view-transitions-style';
+            style.textContent = `
+                @keyframes fade-in {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes fade-out {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+                
+                ::view-transition-old(root) {
+                    animation: fade-out 0.3s ease-out both;
+                }
+                
+                ::view-transition-new(root) {
+                    animation: fade-in 0.5s ease-out both;
+                }
+                
+                .view-transition-group {
+                    view-transition-name: page-transition;
+                }
+                
+                ::view-transition-old(page-transition),
+                ::view-transition-new(page-transition) {
+                    animation-duration: 0.5s;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        this.#content.classList.add('view-transition-group');
     }
 
     _setupDrawer() {
@@ -43,6 +85,32 @@ class App {
                 }
             })
         });
+    }
+
+    _setupSkipToContent() {
+        window.addEventListener('hashchange', () => {
+            if (window.location.hash && window.location.hash.includes('#main-content')) {
+                history.pushState('', document.title, window.location.pathname + window.location.search);
+
+                this.#content.focus();
+
+                this._announceToScreenReader('Main content');
+            }
+        });
+    }
+
+    _announceToScreenReader(message) {
+        let liveRegion = document.getElementById('screen-reader-announcer');
+        if (!liveRegion) {
+            liveRegion = document.createElement('div');
+            liveRegion.id = 'screen-reader-announcer';
+            liveRegion.setAttribute('aria-live', 'polite');
+            liveRegion.setAttribute('aria-atomic', 'true');
+            liveRegion.className = 'sr-only';
+            document.body.appendChild(liveRegion);
+        }
+
+        liveRegion.textContent = message;
     }
 
     _setupLogout() {
@@ -90,10 +158,28 @@ class App {
                 this.#currentPath
             );
             
-            await this.#pageTransition.transition(transitionType, async () => {
-                this.#content.innerHTML = await page.render();
-                await page.afterRender();
-                this._updateNavigation();
+            const transition = transitionHelper({
+                skipTransition: !document.startViewTransition,
+                updateDOM: async () => {
+                    this.#content.innerHTML = await page.render();
+                    await page.afterRender();
+                    this._updateNavigation();
+                    this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
+                }
+            });
+
+            transition.ready.catch(error => {
+                console.log('View transitions not supported, falling back to traditional transition');
+                this.#pageTransition.transition(transitionType, async () => {
+                    this.#content.innerHTML = await page.render();
+                    await page.afterRender();
+                    this._updateNavigation();
+                    this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
+                });
+            });
+
+            transition.updateCallbackDone.then(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
             });
         } else {
             if (!getAccessToken()) {
@@ -102,6 +188,26 @@ class App {
                 location.hash = '/';
             }
         }
+    }
+
+    _getPageTitle(url) {
+        const pathMap = {
+            '': 'Home',
+            '/': 'Home',
+            '/about': 'About',
+            '/login': 'Login',
+            '/register': 'Register',
+        };
+
+        if (pathMap[url]) {
+            return pathMap[url];
+        }
+
+        if (url.includes('/stories/')) {
+            return 'Story Detail';
+        }
+
+        return 'Page';
     }
 }
 

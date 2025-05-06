@@ -9,6 +9,7 @@ import HomePresenter from './home-presenter';
 import * as StoryAPI from '../../data/api';
 import Map from '../../utils/map';
 import 'leaflet/dist/leaflet.css';
+import '../../../styles/transition.css'
 
 export default class HomePage {
     #presenter = null;
@@ -17,20 +18,20 @@ export default class HomePage {
 
     async render() {
         return `
-            <section class="container">
-                <h1 class="section-title animate-fade-in">Stories</h1>
+            <section class="container home-page-transition">
+                <h1 class="section-title animate-fade-in" tabindex="-1">Stories</h1>
         
                 <div class="add-story-container animate-fade-in delay-100">
                     ${generateAddStoryButtonTemplate()}
                 </div>
 
-                <div class="map-container">
+                <div class="map-container content-with-transition">
                     <h2>Stories Map</h2>
                     <div id="stories-map" style="height: 400px; margin-bottom: 20px;"></div>
                 </div>
 
-                <div class="stories-list__container">
-                    <div id="stories-list"></div>
+                <div class="stories-list__container content-with-transition">
+                    <div id="stories-list" role="list"></div>
                     <div id="stories-list-loading-container"></div>
                 </div>
             </section>
@@ -73,7 +74,8 @@ export default class HomePage {
                     description: story.description,
                     photoUrl: story.photoUrl,
                     createdAt: story.createdAt,
-                    animationDelay
+                    animationDelay,
+                    className: 'story-card-transition'
                 }),
             );
         }, '');

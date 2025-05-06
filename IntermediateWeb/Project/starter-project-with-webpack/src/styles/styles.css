@@ -24,21 +24,42 @@
 }
   
 /* Skip to content */
-.skip-to-content {
-    position: absolute;
-    top: -40px;
-    left: 0;
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-    color: var(--black);
-    font-weight: bold;
-    z-index: 10000;
-    transition: top var(--transition-medium);
+.skip-link {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    color: red;
 }
-  
-.skip-to-content:focus {
-    top: 0;
-    outline: 2px solid var(--neutral-dark);
+
+.skip-link:focus {
+    position: unset !important;
+}
+
+/* Screen reader only class */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* For focus management */
+#main-content:focus {
+    outline: none;
+}
+
+/* High contrast focus style */
+@media (forced-colors: active) {
+    .skip-link:focus {
+        outline: 3px solid CanvasText;
+    }
 }
   
 * {

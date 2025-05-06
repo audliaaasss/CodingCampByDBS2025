@@ -9,7 +9,7 @@ export default class LoginPage {
         return `
             <section class="login-container">
                 <article class="login-form-container animate-scale-up">
-                    <h1 class="login__title animate-fade-in">Masuk akun</h1>
+                    <h1 class="login__title animate-fade-in" tabindex="-1">Masuk akun</h1>
 
                     <form id="login-form" class="login-form animate-fade-in delay-100">
                         <div class="form-control animate-fade-in delay-200">
