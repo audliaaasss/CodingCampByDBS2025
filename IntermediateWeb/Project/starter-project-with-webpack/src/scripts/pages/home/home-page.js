@@ -30,7 +30,7 @@ export default class HomePage {
                     <div id="stories-map" style="height: 400px; margin-bottom: 20px;"></div>
                 </div>
 
-                <div class="stories-list__container content-with-transition">
+                <div class="stories-list__container">
                     <div id="stories-list" role="list"></div>
                     <div id="stories-list-loading-container"></div>
                 </div>
@@ -75,7 +75,7 @@ export default class HomePage {
                     photoUrl: story.photoUrl,
                     createdAt: story.createdAt,
                     animationDelay,
-                    className: 'story-card-transition'
+                    className: `story-card-transition-${story.id}`
                 }),
             );
         }, '');

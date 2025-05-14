@@ -276,7 +276,6 @@ header {
     flex-direction: column;
     height: 100%;
     position: relative;
-    view-transition-name: story-card;
 }
   
 .story-item:hover,
