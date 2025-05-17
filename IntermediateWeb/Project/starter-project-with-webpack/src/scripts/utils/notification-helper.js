@@ -38,8 +38,15 @@ const NotificationHelper = {
         }
 
         try {
+            if (!('serviceWorker' in navigator)) {
+                return { error: true, message: 'Service Worker tidak didukung di browser ini' };
+            }
+
             const registration = await navigator.serviceWorker.ready;
-            
+            if (!registration) {
+                return { error: true, message: 'Service Worker tidak terdaftar' };
+            }
+
             const existingSubscription = await registration.pushManager.getSubscription();
             if (existingSubscription) {
                 return { 
@@ -49,12 +56,23 @@ const NotificationHelper = {
                 };
             }
 
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: this._urlBase64ToUint8Array(CONFIG.VAPID_PUBLIC_KEY),
-            });
-
-            return { error: false, message: 'Subscribed successfully', subscription };
+            console.log('Creating new subscription with key:', CONFIG.VAPID_PUBLIC_KEY);
+            
+            try {
+                const applicationServerKey = this._urlBase64ToUint8Array(CONFIG.VAPID_PUBLIC_KEY);
+                console.log('Converted application server key:', applicationServerKey);
+                
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey,
+                });
+                
+                console.log('New subscription created:', subscription);
+                return { error: false, message: 'Subscribed successfully', subscription };
+            } catch (subscribeError) {
+                console.error('Push Manager subscribe error:', subscribeError);
+                return { error: true, message: `Subscription error: ${subscribeError.message}` };
+            }
         } catch (error) {
             console.error('Error subscribing to push notifications:', error);
             return { error: true, message: `Subscription failed: ${error.message}` };

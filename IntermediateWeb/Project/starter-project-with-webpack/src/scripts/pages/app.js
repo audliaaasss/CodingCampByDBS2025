@@ -172,9 +172,37 @@ class App {
                 this._showToast('Subscribed to notifications successfully');
                 
                 try {
-                    console.log('Subscription object to save:', result.subscription);
+                    const StoryAPI = await import('../data/api');
+                    
+                    const subscriptionJSON = result.subscription.toJSON();
+                    
+                    await StoryAPI.subscribePushNotification({
+                        endpoint: subscriptionJSON.endpoint,
+                        keys: {
+                            p256dh: subscriptionJSON.keys.p256dh,
+                            auth: subscriptionJSON.keys.auth
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Subscription sent to server successfully');
+                        
+                        const registration = await navigator.serviceWorker.ready;
+                        if (registration.active) {
+                            registration.active.postMessage({
+                                type: 'SIMULATE_PUSH',
+                                title: 'Notifications Enabled!',
+                                message: 'You will now receive notifications for new stories.',
+                                url: '#'
+                            });
+                        }
+                    } else {
+                        console.error('Server error when saving subscription:', response);
+                        this._showToast('Subscription saved locally but server sync failed', false);
+                    }
                 } catch (error) {
                     console.error('Failed to send subscription to server:', error);
+                    this._showToast('Subscription saved locally but server sync failed', false);
                 }
             } else {
                 this._showToast(result.message, false);

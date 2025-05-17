@@ -9,7 +9,8 @@ import HomePresenter from './home-presenter';
 import * as StoryAPI from '../../data/api';
 import Map from '../../utils/map';
 import 'leaflet/dist/leaflet.css';
-import '../../../styles/transition.css'
+import '../../../styles/transition.css';
+import NotificationHelper from '../../utils/notification-helper';
 
 export default class HomePage {
     #presenter = null;
@@ -55,6 +56,41 @@ export default class HomePage {
         }
 
         await this.#presenter.initialStories();
+
+        this._checkNotificationStatus();
+        this._setupEventListeners();
+    }
+
+    _setupEventListeners() {
+        const addStoryBtn = document.querySelector('.add-story-button');
+        if (addStoryBtn) {
+            addStoryBtn.addEventListener('click', () => {
+                sessionStorage.setItem('adding_story', 'true');
+            });
+        }
+        
+        document.body.addEventListener('submit', async (event) => {
+            if (event.target.id === 'add-story-form') {
+                sessionStorage.setItem('story_added', 'true');
+            }
+        });
+        
+        if (sessionStorage.getItem('story_added') === 'true') {
+            sessionStorage.removeItem('story_added');
+            
+            setTimeout(() => {
+                this._simulatePushMessage();
+            }, 2000);
+        }
+    }
+    
+    async _checkNotificationStatus() {
+        const subscription = await NotificationHelper.getSubscription();
+        if (!subscription) {
+            setTimeout(() => {
+                this.showInfoMessage('Subscribe to notifications to stay updated with new stories!');
+            }, 1000);
+        }
     }
 
     populateStories(stories) {
@@ -164,5 +200,78 @@ export default class HomePage {
         setTimeout(() => {
             errorMessage.remove();
         }, 3000);
+    }
+
+    async _simulatePushMessage() {
+        try {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                console.log('Push notifications not supported in this browser');
+                return;
+            }
+            
+            const registration = await navigator.serviceWorker.ready;
+            if (!registration.active) {
+                console.error('Service worker is not active');
+                return;
+            }
+            
+            const subscription = await NotificationHelper.getSubscription();
+            if (!subscription) {
+                console.log('User not subscribed to push notifications');
+                return; 
+            }
+            
+            try {
+                const StoryAPI = await import('../../data/api');
+                const response = await StoryAPI.subscribePushNotification({
+                    endpoint: subscription.endpoint,
+                    keys: {
+                        p256dh: subscription.keys.p256dh,
+                        auth: subscription.keys.auth
+                    }
+                });
+                console.log('Push subscription sent to server:', response);
+                
+                await this.#presenter._triggerPushNotification({
+                    title: 'New Story Added!',
+                    message: 'Someone just added a new story. Check it out!',
+                    url: '#'
+                });
+            } catch (serverError) {
+                console.error('Error sending push via server:', serverError);
+                
+                registration.active.postMessage({
+                    type: 'SIMULATE_PUSH',
+                    title: 'New Story Added!',
+                    message: 'Someone just added a new story. Check it out!',
+                    url: '#'
+                });
+                
+                console.log('Simulated push message sent to service worker');
+            }
+        } catch (error) {
+            console.error('Error simulating push:', error);
+        }
+    }
+
+    showInfoMessage(message) {
+        const infoMessage = document.createElement('div');
+        infoMessage.className = 'info-message animate-scale-up';
+        infoMessage.style.backgroundColor = '#3498db';
+        infoMessage.style.color = '#fff';
+        infoMessage.style.padding = '10px 20px';
+        infoMessage.style.borderRadius = '4px';
+        infoMessage.style.position = 'fixed';
+        infoMessage.style.bottom = '20px';
+        infoMessage.style.right = '20px';
+        infoMessage.style.zIndex = '1000';
+        infoMessage.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        infoMessage.textContent = message;
+
+        document.body.appendChild(infoMessage);
+
+        setTimeout(() => {
+            infoMessage.remove();
+        }, 5000);
     }
 }
