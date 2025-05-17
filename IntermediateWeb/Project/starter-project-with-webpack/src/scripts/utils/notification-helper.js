@@ -68,6 +68,22 @@ const NotificationHelper = {
                 });
                 
                 console.log('New subscription created:', subscription);
+                
+                try {
+                    const { getAllStories } = await import('../data/api');
+                    const response = await getAllStories();
+                    if (response.ok && response.listStory.length > 0) {
+                        const newestStory = [...response.listStory].sort((a, b) => 
+                            new Date(b.createdAt) - new Date(a.createdAt)
+                        )[0];
+                        
+                        localStorage.setItem('lastKnownStoryTime', 
+                            new Date(newestStory.createdAt).getTime().toString());
+                    }
+                } catch (error) {
+                    console.error('Error updating last known story time after subscription:', error);
+                }
+                
                 return { error: false, message: 'Subscribed successfully', subscription };
             } catch (subscribeError) {
                 console.error('Push Manager subscribe error:', subscribeError);

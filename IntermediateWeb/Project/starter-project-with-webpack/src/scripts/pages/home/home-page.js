@@ -10,7 +10,6 @@ import * as StoryAPI from '../../data/api';
 import Map from '../../utils/map';
 import 'leaflet/dist/leaflet.css';
 import '../../../styles/transition.css';
-import NotificationHelper from '../../utils/notification-helper';
 
 export default class HomePage {
     #presenter = null;
@@ -59,6 +58,21 @@ export default class HomePage {
 
         this._checkNotificationStatus();
         this._setupEventListeners();
+        this._setupPollingForNewStories();
+    }
+
+    _setupPollingForNewStories() {
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                this.#presenter.initialStories();
+            }
+        }, 30000);
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.#presenter.initialStories();
+            }
+        });
     }
 
     _setupEventListeners() {
@@ -82,21 +96,34 @@ export default class HomePage {
                 this._simulatePushMessage();
             }, 2000);
         }
+
+        window.addEventListener('hashchange', () => {
+            if (location.hash === '#/') {
+                sessionStorage.removeItem('adding_story');
+            }
+        });
     }
     
     async _checkNotificationStatus() {
-        const subscription = await NotificationHelper.getSubscription();
-        if (!subscription) {
-            setTimeout(() => {
-                this.showInfoMessage('Subscribe to notifications to stay updated with new stories!');
-            }, 1000);
+        const NotificationHelper = await import('../../utils/notification-helper')
+            .then(module => module.default);
+        
+        try {
+            const subscription = await NotificationHelper.getSubscription();
+            if (!subscription) {
+                setTimeout(() => {
+                    this.showInfoMessage('Subscribe to notifications to stay updated with new stories!');
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('Error checking notification status:', error);
         }
     }
 
     populateStories(stories) {
         this.#stories = stories;
 
-        if (stories.length <= 0) {
+        if (!stories || stories.length <= 0) {
             this.populateEmptyStories();
             return;
         }
@@ -116,9 +143,12 @@ export default class HomePage {
             );
         }, '');
 
-        document.getElementById('stories-list').innerHTML = `
-            <div class="stories-list">${html}</div>
-        `;
+        const storiesList = document.getElementById('stories-list');
+        if (storiesList) {
+            storiesList.innerHTML = `
+                <div class="stories-list">${html}</div>
+            `;
+        }
 
         this._addStoryMarkers(stories);
     }
@@ -150,7 +180,10 @@ export default class HomePage {
     }
 
     populateEmptyStories() {
-        document.getElementById('stories-list').innerHTML = generateStoriesListEmptyTemplate();
+        const storiesList = document.getElementById('stories-list');
+        if (storiesList) {
+            storiesList.innerHTML = generateStoriesListEmptyTemplate();
+        }
     }
 
     populateStoriesError(message) {
@@ -171,16 +204,22 @@ export default class HomePage {
     }
 
     showLoading() {
-        document.getElementById('stories-list-loading-container').innerHTML = generateLoaderAbsoluteTemplate();
+        const loadingContainer = document.getElementById('stories-list-loading-container');
+        if (loadingContainer) {
+            loadingContainer.innerHTML = generateLoaderAbsoluteTemplate();
+        }
     }
 
     hideLoading() {
-        document.getElementById('stories-list-loading-container').innerHTML = '';
+        const loadingContainer = document.getElementById('stories-list-loading-container');
+        if (loadingContainer) {
+            loadingContainer.innerHTML = '';
+        }
     }
 
     showSuccessMessage(message) {
         const successMessage = document.createElement('div');
-        successMessage.className = 'success-messae animate-scale-up';
+        successMessage.className = 'success-message animate-scale-up';
         successMessage.textContent = message;
 
         document.body.appendChild(successMessage);
@@ -215,36 +254,36 @@ export default class HomePage {
                 return;
             }
             
-            const subscription = await NotificationHelper.getSubscription();
-            if (!subscription) {
-                console.log('User not subscribed to push notifications');
-                return; 
-            }
-            
             try {
                 const StoryAPI = await import('../../data/api');
-                const response = await StoryAPI.subscribePushNotification({
-                    endpoint: subscription.endpoint,
-                    keys: {
-                        p256dh: subscription.keys.p256dh,
-                        auth: subscription.keys.auth
-                    }
-                });
-                console.log('Push subscription sent to server:', response);
+                const response = await StoryAPI.getAllStories();
                 
-                await this.#presenter._triggerPushNotification({
-                    title: 'New Story Added!',
-                    message: 'Someone just added a new story. Check it out!',
-                    url: '#'
-                });
+                if (response.ok && response.listStory && response.listStory.length > 0) {
+                    const newestStory = [...response.listStory].sort((a, b) => 
+                        new Date(b.createdAt) - new Date(a.createdAt)
+                    )[0];
+                    
+                    registration.active.postMessage({
+                        type: 'SIMULATE_PUSH',
+                        title: 'New Story Added!',
+                        message: 'You just added a new story. Check it out!',
+                        url: `#/stories/${newestStory.id}`,
+                        storyId: newestStory.id
+                    });
+                    
+                    console.log('Simulated push message sent to service worker');
+                } else {
+                    throw new Error('Could not retrieve story data');
+                }
             } catch (serverError) {
                 console.error('Error sending push via server:', serverError);
                 
                 registration.active.postMessage({
                     type: 'SIMULATE_PUSH',
                     title: 'New Story Added!',
-                    message: 'Someone just added a new story. Check it out!',
-                    url: '#'
+                    message: 'You just added a new story. Check it out!',
+                    url: '#',
+                    storyId: null  
                 });
                 
                 console.log('Simulated push message sent to service worker');

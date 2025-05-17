@@ -14,6 +14,7 @@ class App {
     #currentPath = null;
     #previousPath = null;
     #notificationSubscribed = false;
+    #loadingTimeout = null;
 
     constructor({ navigationDrawer, drawerButton, content }) {
         this.#content = content;
@@ -35,9 +36,15 @@ class App {
     }
 
     async _checkNotificationStatus() {
-        const subscription = await NotificationHelper.getSubscription();
-        this.#notificationSubscribed = !!subscription;
-        this._updateNavigation();
+        try {
+            const subscription = await NotificationHelper.getSubscription();
+            this.#notificationSubscribed = !!subscription;
+            this._updateNavigation();
+        } catch (error) {
+            console.error('Error checking notification status:', error);
+            this.#notificationSubscribed = false;
+            this._updateNavigation();
+        }
     }
 
     _setupViewTransition() {
@@ -155,37 +162,34 @@ class App {
     async _handleNotificationSubscription(event) {
         event.preventDefault();
         
-        if (this.#notificationSubscribed) {
-            const result = await NotificationHelper.unsubscribe();
-            
-            if (!result.error) {
-                this.#notificationSubscribed = false;
-                this._showToast('Unsubscribed from notifications successfully');
-            } else {
-                this._showToast(result.message, false);
-            }
-        } else {
-            const result = await NotificationHelper.subscribe();
-            
-            if (!result.error) {
-                this.#notificationSubscribed = true;
-                this._showToast('Subscribed to notifications successfully');
-                
+        try {
+            if (this.#notificationSubscribed) {
                 try {
-                    const StoryAPI = await import('../data/api');
-                    
-                    const subscriptionJSON = result.subscription.toJSON();
-                    
-                    await StoryAPI.subscribePushNotification({
-                        endpoint: subscriptionJSON.endpoint,
-                        keys: {
-                            p256dh: subscriptionJSON.keys.p256dh,
-                            auth: subscriptionJSON.keys.auth
+                    const subscription = await NotificationHelper.getSubscription();
+                    if (subscription) {
+                        const result = await NotificationHelper.unsubscribe();
+                        
+                        if (!result.error) {
+                            this.#notificationSubscribed = false;
+                            this._showToast('Unsubscribed from notifications successfully');
+                        } else {
+                            this._showToast(result.message || 'Failed to unsubscribe from notifications', false);
                         }
-                    });
+                    } else {
+                        this.#notificationSubscribed = false;
+                        this._showToast('You are already unsubscribed from notifications');
+                    }
+                } catch (error) {
+                    console.error('Error unsubscribing:', error);
+                    this._showToast('Failed to unsubscribe from notifications', false);
+                }
+            } else {
+                try {
+                    const result = await NotificationHelper.subscribe();
                     
-                    if (response.ok) {
-                        console.log('Subscription sent to server successfully');
+                    if (!result.error) {
+                        this.#notificationSubscribed = true;
+                        this._showToast('Subscribed to notifications successfully');
                         
                         const registration = await navigator.serviceWorker.ready;
                         if (registration.active) {
@@ -197,19 +201,19 @@ class App {
                             });
                         }
                     } else {
-                        console.error('Server error when saving subscription:', response);
-                        this._showToast('Subscription saved locally but server sync failed', false);
+                        this._showToast(result.message || 'Failed to subscribe to notifications', false);
                     }
                 } catch (error) {
-                    console.error('Failed to send subscription to server:', error);
-                    this._showToast('Subscription saved locally but server sync failed', false);
+                    console.error('Error subscribing:', error);
+                    this._showToast('Failed to subscribe to notifications', false);
                 }
-            } else {
-                this._showToast(result.message, false);
             }
+        } catch (error) {
+            console.error('Notification error:', error);
+            this._showToast('Notification service error', false);
+        } finally {
+            this._updateNavigation();
         }
-        
-        this._updateNavigation();
     }
 
     _updateNavigation() {
@@ -229,12 +233,24 @@ class App {
 
             const notificationButton = document.getElementById('notification-button');
             if (notificationButton) {
+                notificationButton.removeEventListener('click', this._handleNotificationSubscription.bind(this));
                 notificationButton.addEventListener('click', this._handleNotificationSubscription.bind(this));
             }
         }
     }
 
     async renderPage() {
+        if (this.#loadingTimeout) {
+            clearTimeout(this.#loadingTimeout);
+        }
+        
+        this.#loadingTimeout = setTimeout(() => {
+            const loadingElement = document.getElementById('stories-list-loading-container');
+            if (loadingElement && loadingElement.innerHTML !== '') {
+                loadingElement.innerHTML = '';
+            }
+        }, 10000);
+
         const url = getActiveRoute();
         const page = routes[url];
 
@@ -244,29 +260,38 @@ class App {
                 this.#currentPath
             );
             
-            const transition = transitionHelper({
-                skipTransition: !document.startViewTransition,
-                updateDOM: async () => {
-                    this.#content.innerHTML = await page.render();
-                    await page.afterRender();
-                    this._updateNavigation();
-                    this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
-                }
-            });
-
-            transition.ready.catch(error => {
-                console.log('View transitions not supported, falling back to traditional transition');
-                this.#pageTransition.transition(transitionType, async () => {
-                    this.#content.innerHTML = await page.render();
-                    await page.afterRender();
-                    this._updateNavigation();
-                    this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
+            try {
+                const transition = transitionHelper({
+                    skipTransition: !document.startViewTransition,
+                    updateDOM: async () => {
+                        this.#content.innerHTML = await page.render();
+                        await page.afterRender();
+                        this._updateNavigation();
+                        this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
+                    }
                 });
-            });
 
-            transition.updateCallbackDone.then(() => {
+                transition.ready.catch(error => {
+                    console.log('View transitions not supported, falling back to traditional transition');
+                    this.#pageTransition.transition(transitionType, async () => {
+                        this.#content.innerHTML = await page.render();
+                        await page.afterRender();
+                        this._updateNavigation();
+                        this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
+                    });
+                });
+
+                transition.updateCallbackDone.then(() => {
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+                });
+            } catch (error) {
+                console.error('Error during page transition:', error);
+                this.#content.innerHTML = await page.render();
+                await page.afterRender();
+                this._updateNavigation();
+                this._announceToScreenReader(`Page changed to ${this._getPageTitle(url)}`);
                 window.scrollTo({ top: 0, behavior: 'instant' });
-            });
+            }
         } else {
             if (!getAccessToken()) {
                 location.hash = '/login';

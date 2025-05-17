@@ -22,12 +22,13 @@ self.addEventListener('push', (event) => {
             vibrate: [100, 50, 100],
             data: {
                 dateOfArrival: Date.now(),
-                url: '#'
+                url: '#',
+                storyId: null
             },
             actions: [
                 {
-                    action: 'view-stories',
-                    title: 'View Stories'
+                    action: 'view-story',
+                    title: 'View Story'
                 }
             ],
             requireInteraction: true
@@ -45,6 +46,7 @@ self.addEventListener('push', (event) => {
                 if (jsonData.title) notificationData.title = jsonData.title;
                 if (jsonData.message) notificationData.options.body = jsonData.message;
                 if (jsonData.url) notificationData.options.data.url = jsonData.url;
+                if (jsonData.storyId) notificationData.options.data.storyId = jsonData.storyId;
             } catch (jsonError) {
                 console.error('Error parsing JSON:', jsonError);
                 notificationData.options.body = payload;
@@ -79,12 +81,13 @@ self.addEventListener('message', (event) => {
                 vibrate: [100, 50, 100],
                 data: {
                     dateOfArrival: Date.now(),
-                    url: event.data.url || '#'
+                    url: event.data.url || '#',
+                    storyId: event.data.storyId || null
                 },
                 actions: [
                     {
-                        action: 'view-stories',
-                        title: 'View Stories'
+                        action: 'view-story',
+                        title: 'View Story'
                     }
                 ],
                 requireInteraction: true
@@ -105,16 +108,32 @@ self.addEventListener('notificationclick', (event) => {
 
     event.notification.close();
 
-    const urlToOpen = event.notification.data && event.notification.data.url 
-        ? event.notification.data.url 
-        : '#';
+    const storyId = event.notification.data && event.notification.data.storyId;
+    let urlToOpen = '#';
+    
+    if (storyId) {
+        urlToOpen = `#/stories/${storyId}`;
+    } else if (event.notification.data && event.notification.data.url) {
+        urlToOpen = event.notification.data.url;
+    }
+    
+    if (event.action === 'view-story') {
+        if (storyId) {
+            urlToOpen = `#/stories/${storyId}`;
+        }
+    }
+
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then((clientList) => {
                 for (const client of clientList) {
-                    if (client.url === urlToOpen && 'focus' in client) {
-                        return client.focus();
+                    if ('focus' in client) {
+                        client.focus();
+                        if (client.url.includes('#')) {
+                            return client.navigate(urlToOpen);
+                        }
+                        return client;
                     }
                 }
 

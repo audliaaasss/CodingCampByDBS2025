@@ -28,11 +28,65 @@ export default class HomePresenter {
             }));
 
             this.#view.populateStories(listStory);
+
+            this._checkForNewStories(listStory);
         } catch (error) {
             console.error('initialStories: error:', error);
             this.#view.populateStoriesError(error.message);
         } finally {
             this.#view.hideLoading();
+        }
+    }
+
+    async _checkForNewStories(currentStories) {
+        try {
+            const lastKnownStoryTime = localStorage.getItem('lastKnownStoryTime');
+            
+            if (currentStories.length > 0) {
+                const sortedStories = [...currentStories].sort((a, b) => 
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                
+                const newestStory = sortedStories[0];
+                const newestStoryTime = new Date(newestStory.createdAt).getTime();
+                
+                if (!lastKnownStoryTime || newestStoryTime > parseInt(lastKnownStoryTime)) {
+                    if (lastKnownStoryTime && 
+                        sessionStorage.getItem('adding_story') !== 'true' &&
+                        sessionStorage.getItem('story_added') !== 'true') {
+                        this._sendNewStoryNotification(newestStory);
+                    }
+                    
+                    localStorage.setItem('lastKnownStoryTime', newestStoryTime.toString());
+                }
+            }
+        } catch (error) {
+            console.error('Error checking for new stories:', error);
+        }
+    }
+
+    async _sendNewStoryNotification(story) {
+        try {
+            // Skip server-side push notification and use service worker directly
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    if (registration.active) {
+                        registration.active.postMessage({
+                            type: 'SIMULATE_PUSH',
+                            title: 'New Story Added!',
+                            message: `${story.name} added a new story: ${story.description.substring(0, 50)}${story.description.length > 50 ? '...' : ''}`,
+                            url: `#/stories/${story.id}`,
+                            storyId: story.id
+                        });
+                        console.log('Push notification simulated via service worker');
+                    }
+                } catch (swError) {
+                    console.error('Failed to use service worker for notification:', swError);
+                }
+            }
+        } catch (error) {
+            console.error('Error sending notification for new story:', error);
         }
     }
 
@@ -55,14 +109,22 @@ export default class HomePresenter {
 
             this.#view.showSuccessMessage('Story added successfully!');
 
-            try {
-                await this._triggerPushNotification({
-                    title: 'New Story Added',
-                    message: `A new story has been added: ${description.substring(0, 30)}...`,
-                    url: '#'
-                });
-            } catch (notifyError) {
-                console.error('Error sending push notification:', notifyError);
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    if (registration.active) {
+                        registration.active.postMessage({
+                            type: 'SIMULATE_PUSH',
+                            title: 'New Story Added',
+                            message: `A new story has been added: ${description.substring(0, 30)}...`,
+                            url: '#/stories/' + response.id,
+                            storyId: response.id
+                        });
+                        console.log('Push notification simulated via service worker');
+                    }
+                } catch (error) {
+                    console.error('Error simulating push notification:', error);
+                }
             }
 
             await this.initialStories();
@@ -76,25 +138,22 @@ export default class HomePresenter {
 
     async _triggerPushNotification(data) {
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}/notifications`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${getAccessToken()}`,
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.ready;
+                if (registration.active) {
+                    registration.active.postMessage({
+                        type: 'SIMULATE_PUSH',
+                        ...data
+                    });
+                    console.log('Push notification simulated via service worker');
+                    return { success: true };
+                }
             }
-
-            const responseJson = await response.json();
-            console.log('Push notification triggered:', responseJson);
-            return responseJson;
+            
+            return { success: false, message: 'Service worker not available' };
         } catch (error) {
             console.error('Error triggering push notification:', error);
-            throw error;
+            return { success: false, message: error.message };
         }
     }
 }
