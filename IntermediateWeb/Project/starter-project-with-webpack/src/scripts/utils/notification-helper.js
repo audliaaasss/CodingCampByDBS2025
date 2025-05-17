@@ -40,7 +40,6 @@ const NotificationHelper = {
         try {
             const registration = await navigator.serviceWorker.ready;
             
-            // Check if subscription already exists
             const existingSubscription = await registration.pushManager.getSubscription();
             if (existingSubscription) {
                 return { 
@@ -50,7 +49,6 @@ const NotificationHelper = {
                 };
             }
 
-            // Subscribe the user
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: this._urlBase64ToUint8Array(CONFIG.VAPID_PUBLIC_KEY),
