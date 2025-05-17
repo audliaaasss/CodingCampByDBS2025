@@ -3,6 +3,7 @@ import { getActiveRoute, getActivePathname } from '../routes/url-parser';
 import { getAccessToken, getLogout } from '../utils/auth';
 import PageTransition from './transition';
 import { transitionHelper } from '../utils';
+import NotificationHelper from '../utils/notification-helper';
 
 class App {
     #content = null;
@@ -12,6 +13,7 @@ class App {
     #pageTransition = null;
     #currentPath = null;
     #previousPath = null;
+    #notificationSubscribed = false;
 
     constructor({ navigationDrawer, drawerButton, content }) {
         this.#content = content;
@@ -29,6 +31,13 @@ class App {
         this._setupNavigationTracking();
 
         this._setupViewTransition();
+        this._checkNotificationStatus();
+    }
+
+    async _checkNotificationStatus() {
+        const subscription = await NotificationHelper.getSubscription();
+        this.#notificationSubscribed = !!subscription;
+        this._updateNavigation();
     }
 
     _setupViewTransition() {
@@ -132,6 +141,49 @@ class App {
         });
     }
 
+    _showToast(message, isSuccess = true) {
+        const toast = document.createElement('div');
+        toast.className = isSuccess ? 'success-message animate-scale-up' : 'error-message animate-scale-up';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    async _handleNotificationSubscription(event) {
+        event.preventDefault();
+        
+        if (this.#notificationSubscribed) {
+            const result = await NotificationHelper.unsubscribe();
+            
+            if (!result.error) {
+                this.#notificationSubscribed = false;
+                this._showToast('Unsubscribed from notifications successfully');
+            } else {
+                this._showToast(result.message, false);
+            }
+        } else {
+            const result = await NotificationHelper.subscribe();
+            
+            if (!result.error) {
+                this.#notificationSubscribed = true;
+                this._showToast('Subscribed to notifications successfully');
+                
+                try {
+                    console.log('Subscription object to save:', result.subscription);
+                } catch (error) {
+                    console.error('Failed to send subscription to server:', error);
+                }
+            } else {
+                this._showToast(result.message, false);
+            }
+        }
+        
+        this._updateNavigation();
+    }
+
     _updateNavigation() {
         const currentPath = getActivePathname();
 
@@ -143,8 +195,14 @@ class App {
             this.#navList.innerHTML = `
                 <li><a href="#/">Home</a></li>
                 <li><a href="#/about">About</a></li>
+                <li><a href="#" id="notification-button">${this.#notificationSubscribed ? 'Unsubscribe' : 'Subscribe'}</a></li>
                 <li><a href="#" id="logout-button">Logout</a></li>
             `;
+
+            const notificationButton = document.getElementById('notification-button');
+            if (notificationButton) {
+                notificationButton.addEventListener('click', this._handleNotificationSubscription.bind(this));
+            }
         }
     }
 

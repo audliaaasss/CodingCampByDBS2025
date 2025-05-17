@@ -37,8 +37,17 @@ export async function registerServiceWorker() {
  
     try {
         const registration = await navigator.serviceWorker.register('/sw.bundle.js');
-        console.log('Service worker telah terpasang', registration);
+        console.log('Service worker installed successfully', registration);
+
+        if ('PushManager' in window) {
+            console.log('Push API is supported');
+        } else {
+            console.log('Push API is not supported');
+        }
+        
+        return registration;
     } catch (error) {
         console.log('Failed to install service worker:', error);
+        return null;
     }
 }
