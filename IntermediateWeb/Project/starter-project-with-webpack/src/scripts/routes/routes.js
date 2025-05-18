@@ -1,5 +1,5 @@
 import HomePage from '../pages/home/home-page';
-import AboutPage from '../pages/about/about-page';
+import BookmarkPage from '../pages/bookmark/bookmark-page';
 import LoginPage from '../pages/auth/login/login-page';
 import RegisterPage from '../pages/auth/register/register-page';
 import DetailPage from '../pages/detail/detail-page';
@@ -11,7 +11,7 @@ const routes = {
     '/register': checkUnauthenticatedRouteOnly(new RegisterPage()),
 
     '/': checkAuthenticatedRoute(new HomePage()),
-    '/about': checkAuthenticatedRoute(new AboutPage()),
+    '/bookmark': checkAuthenticatedRoute(new BookmarkPage()),
     '/stories/:id': checkAuthenticatedRoute(new DetailPage()),
     '/add': checkAuthenticatedRoute(new AddPage()),
 };

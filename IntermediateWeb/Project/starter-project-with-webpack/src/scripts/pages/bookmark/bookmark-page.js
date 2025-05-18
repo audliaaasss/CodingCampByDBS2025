@@ -1,8 +1,8 @@
-export default class AboutPage {
+export default class BookmarkPage {
     async render() {
         return `
             <section class="container">
-                <h1>About Page</h1>
+                <h1>Bookmark Page</h1>
             </section>
         `;
     }
