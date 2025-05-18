@@ -30,6 +30,18 @@ registerRoute(
 );
 
 registerRoute(
+    ({ url }) => url.pathname.includes('stories'),
+    new StaleWhileRevalidate({
+        cacheName: 'stories-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    }),
+);
+
+registerRoute(
     ({ url }) => url.pathname.includes('api'),
     new NetworkFirst({
         cacheName: 'api-cache',
