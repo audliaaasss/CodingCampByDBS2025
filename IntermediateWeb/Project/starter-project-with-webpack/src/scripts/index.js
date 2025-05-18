@@ -25,6 +25,11 @@ window.addEventListener('beforeinstallprompt', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+    checkOnlineStatus();
+    
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
+
     if (!getAccessToken() && location.hash === '') {
         location.hash = 'login';
     }
@@ -37,11 +42,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await app.renderPage();
 
     await registerServiceWorker();
-
-    checkOnlineStatus();
-
-    window.addEventListener('online', checkOnlineStatus);
-    window.addEventListener('offline', checkOnlineStatus);
 
     window.addEventListener('hashchange', async () => {
         await app.renderPage();

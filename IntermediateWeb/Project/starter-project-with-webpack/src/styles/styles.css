@@ -794,8 +794,26 @@ input:focus {
 .leaflet-bottom {
     z-index: 900 !important;
 }
+
+.offline-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #ff9800;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    z-index: 1000;
+    font-weight: bold;
+    display: block;
+}
+            
+.hidden {
+    display: none !important;
+}
   
-  /* ---- Responsive Styles ---- */
+/* ---- Responsive Styles ---- */
 @media screen and (min-width: 768px) {
     .section-title {
         font-size: 2.25rem;
