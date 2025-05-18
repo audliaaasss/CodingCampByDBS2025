@@ -109,37 +109,53 @@ self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
     const storyId = event.notification.data && event.notification.data.storyId;
-    let urlToOpen = '#';
+    let urlToOpen = '/';
     
     if (storyId) {
-        urlToOpen = `#/stories/${storyId}`;
+        urlToOpen = `/#/stories/${storyId}`;
     } else if (event.notification.data && event.notification.data.url) {
-        urlToOpen = event.notification.data.url;
-    }
-    
-    if (event.action === 'view-story') {
-        if (storyId) {
-            urlToOpen = `#/stories/${storyId}`;
+        const url = event.notification.data.url;
+        if (url.startsWith('#')) {
+            urlToOpen = `/${url}`;
+        } else {
+            urlToOpen = url;
         }
     }
+    
+    if (event.action === 'view-story' && storyId) {
+        urlToOpen = `/#/stories/${storyId}`;
+    }
 
+    console.log('Navigation URL:', urlToOpen);
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then((clientList) => {
                 for (const client of clientList) {
+                    console.log('Found client:', client.url);
+
                     if ('focus' in client) {
                         client.focus();
-                        if (client.url.includes('#')) {
-                            return client.navigate(urlToOpen);
-                        }
-                        return client;
+
+                        const baseUrl = new URL(client.url).origin;
+
+                        const fullUrl = baseUrl + urlToOpen;
+                        console.log('Navigation to:', fullUrl);
+
+                        return client.navigate(fullUrl).then((newClient) => {
+                            setTimeout(() => {
+                                if (newClient) newClient.focus();
+                            }, 500);
+                            return newClient;
+                        });
                     }
                 }
 
-                if (clients.openWindow) {
-                    return clients.openWindow(urlToOpen);
-                }
+                console.log('No active clients found, opening new window with URL:', urlToOpen);
+                const baseUrl = self.registration.scope;
+                const fullUrl = new URL(urlToOpen, baseUrl).href;
+
+                return clients.openWindow(fullUrl);
             })
     );
 });
