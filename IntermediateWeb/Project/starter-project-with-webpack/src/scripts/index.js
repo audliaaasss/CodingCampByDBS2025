@@ -4,6 +4,26 @@ import App from './pages/app';
 import { registerServiceWorker } from './utils';
 import { getAccessToken } from './utils/auth';
 
+const checkOnlineStatus = () => {
+    const offlineMessage = document.getElementById('offline-message');
+    
+    if (!navigator.onLine) {
+        offlineMessage.classList.remove('hidden');
+    } else {
+        offlineMessage.classList.add('hidden');
+    }
+};
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    
+    deferredPrompt = event;
+    
+    console.log('App can be installed on homescreen');
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     if (!getAccessToken() && location.hash === '') {
         location.hash = 'login';
@@ -17,6 +37,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await app.renderPage();
 
     await registerServiceWorker();
+
+    checkOnlineStatus();
+
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
 
     window.addEventListener('hashchange', async () => {
         await app.renderPage();

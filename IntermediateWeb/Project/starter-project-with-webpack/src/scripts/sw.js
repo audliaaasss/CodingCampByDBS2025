@@ -1,14 +1,67 @@
-const CACHE_NAME = 'story-app-cache-v1';
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
-self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing...');
-    self.skipWaiting();
-});
+precacheAndRoute(self.__WB_MANIFEST || []);
 
-self.addEventListener('activate', (event) => {
-    console.log('Service Worker: Activating...');
-    event.waitUntil(clients.claim());
-});
+registerRoute(
+    ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
+    new StaleWhileRevalidate({
+        cacheName: 'google-fonts-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    }),
+);
+
+registerRoute(
+    ({ url }) => url.origin === 'https://unpkg.com' && url.pathname.includes('leaflet'),
+    new CacheFirst({
+        cacheName: 'leaflet-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    }),
+);
+
+registerRoute(
+    ({ url }) => url.pathname.includes('api'),
+    new NetworkFirst({
+        cacheName: 'api-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    }),
+);
+
+registerRoute(
+    ({ request }) => 
+        request.destination === 'image' || 
+        request.destination === 'script' || 
+        request.destination === 'style',
+    new StaleWhileRevalidate({
+        cacheName: 'static-resources',
+    }),
+);
+
+registerRoute(
+    ({ request }) => request.mode === 'navigate',
+    new NetworkFirst({
+        cacheName: 'pages-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    }),
+);
 
 self.addEventListener('push', (event) => {
     console.log('Service Worker: Push received');
@@ -135,27 +188,41 @@ self.addEventListener('notificationclick', (event) => {
                     console.log('Found client:', client.url);
 
                     if ('focus' in client) {
-                        client.focus();
+                        try {
+                            client.focus();
 
-                        const baseUrl = new URL(client.url).origin;
+                            const baseUrl = new URL(client.url).origin;
 
-                        const fullUrl = baseUrl + urlToOpen;
-                        console.log('Navigation to:', fullUrl);
+                            const fullUrl = baseUrl + urlToOpen;
+                            console.log('Navigation to:', fullUrl);
 
-                        return client.navigate(fullUrl).then((newClient) => {
-                            setTimeout(() => {
-                                if (newClient) newClient.focus();
-                            }, 500);
-                            return newClient;
-                        });
+                            return client.navigate(fullUrl).then((newClient) => {
+                                try {
+                                    if (newClient) setTimeout(() => newClient.focus(), 500);
+                                } catch (e) {
+                                    console.log('Unable to focus window:', e);
+                                }
+
+                                return newClient;
+                            });
+                        } catch (e) {
+                            console.log('Unable to focus window:', e);
+                            return client.navigate(baseUrl + urlToOpen);
+                        }
                     }
                 }
 
                 console.log('No active clients found, opening new window with URL:', urlToOpen);
                 const baseUrl = self.registration.scope;
-                const fullUrl = new URL(urlToOpen, baseUrl).href;
-
-                return clients.openWindow(fullUrl);
+                
+                try {
+                    const fullUrl = new URL(urlToOpen, baseUrl).href;
+                    return clients.openWindow(fullUrl).catch(err => {
+                        console.error('Error opening window:', err);
+                    });
+                } catch (e) {
+                    console.error('Error creating URL or opening window:', e);
+                }
             })
     );
 });

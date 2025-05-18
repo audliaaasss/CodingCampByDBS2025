@@ -3,7 +3,12 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Share your stories with the world">
+        <meta name="theme-color" content="#2196f3">
+        
         <link rel="shortcut icon" href="favicon.png">
+        <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+        <link rel="manifest" href="app.webmanifest">
 
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
               integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
@@ -21,6 +26,7 @@
                 <nav id="navigation-drawer" class="navigation-drawer">
                     <ul id="nav-list" class="nav-list">
                         <li><a href="#/">Beranda</a></li>
+                        <li><a href="#/add">Add Story</a></li>
                         <li><a href="#/about">About</a></li>
                     </ul>
                 </nav>
@@ -30,5 +36,9 @@
         </header>
 
         <main id="main-content" class="main-content" tabindex="-1"></main>
+
+        <div id="offline-message" class="offline-message hidden">
+            You are currently offline. Some features may not be available.
+        </div>
     </body>
 </html>
