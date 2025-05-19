@@ -83,6 +83,8 @@ const NotificationHelper = {
                 } catch (error) {
                     console.error('Error updating last known story time after subscription:', error);
                 }
+
+                localStorage.setItem('pushNotificationStatus', 'subscribed');
                 
                 return { error: false, message: 'Subscribed successfully', subscription };
             } catch (subscribeError) {
@@ -103,6 +105,16 @@ const NotificationHelper = {
             }
 
             await subscription.unsubscribe();
+            
+            localStorage.setItem('pushNotificationStatus', 'unsubscribed');
+            
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'UNSUBSCRIBE_PUSH',
+                    timestamp: Date.now()
+                });
+            }
+
             return { error: false, message: 'Unsubscribed successfully' };
         } catch (error) {
             console.error('Error unsubscribing from push notifications:', error);

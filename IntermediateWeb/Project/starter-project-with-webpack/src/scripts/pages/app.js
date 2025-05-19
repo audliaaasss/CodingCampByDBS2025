@@ -33,16 +33,87 @@ class App {
 
         this._setupViewTransition();
         this._checkNotificationStatus();
+        this._setupServiceWorkerCommunication();
+        
+        this._syncNotificationStatus();
+    }
+    
+    async _syncNotificationStatus() {
+        if (!('serviceWorker' in navigator)) return;
+        
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            
+            const storedStatus = localStorage.getItem('pushNotificationStatus');
+            
+            if (!subscription && storedStatus === 'subscribed') {
+                localStorage.setItem('pushNotificationStatus', 'unsubscribed');
+                this.#notificationSubscribed = false;
+            } 
+
+            else if (subscription && storedStatus === 'unsubscribed') {
+                await subscription.unsubscribe();
+                this.#notificationSubscribed = false;
+            }
+
+            else if (subscription && !storedStatus) {
+                localStorage.setItem('pushNotificationStatus', 'subscribed');
+                this.#notificationSubscribed = true;
+            }
+
+            else if (!subscription && !storedStatus) {
+                localStorage.setItem('pushNotificationStatus', 'unsubscribed');
+                this.#notificationSubscribed = false;
+            }
+
+            else {
+                this.#notificationSubscribed = storedStatus === 'subscribed';
+            }
+            
+            this._updateServiceWorkerSubscriptionStatus();
+            this._updateNavigation();
+        } catch (error) {
+            console.error('Error syncing notification status:', error);
+            this.#notificationSubscribed = false;
+            this._updateNavigation();
+        }
+    }
+    
+    _setupServiceWorkerCommunication() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'GET_SUBSCRIPTION_STATUS') {
+                    this._updateServiceWorkerSubscriptionStatus();
+                }
+            });
+        }
+    }
+    
+    _updateServiceWorkerSubscriptionStatus() {
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SUBSCRIPTION_STATUS',
+                isSubscribed: this.#notificationSubscribed
+            });
+        }
     }
 
     async _checkNotificationStatus() {
         try {
             const subscription = await NotificationHelper.getSubscription();
             this.#notificationSubscribed = !!subscription;
+            
+            localStorage.setItem('pushNotificationStatus', 
+                this.#notificationSubscribed ? 'subscribed' : 'unsubscribed');
+                
+            this._updateServiceWorkerSubscriptionStatus();
             this._updateNavigation();
         } catch (error) {
             console.error('Error checking notification status:', error);
             this.#notificationSubscribed = false;
+            localStorage.setItem('pushNotificationStatus', 'unsubscribed');
+            this._updateServiceWorkerSubscriptionStatus();
             this._updateNavigation();
         }
     }
@@ -171,12 +242,23 @@ class App {
                         
                         if (!result.error) {
                             this.#notificationSubscribed = false;
+                            localStorage.setItem('pushNotificationStatus', 'unsubscribed');
+                            
+                            if (navigator.serviceWorker.controller) {
+                                navigator.serviceWorker.controller.postMessage({
+                                    type: 'UNSUBSCRIBE_PUSH',
+                                    timestamp: Date.now()
+                                });
+                            }
+                            
                             this._showToast('Unsubscribed from notifications successfully');
                         } else {
                             this._showToast(result.message || 'Failed to unsubscribe from notifications', false);
                         }
                     } else {
                         this.#notificationSubscribed = false;
+                        localStorage.setItem('pushNotificationStatus', 'unsubscribed');
+                        this._updateServiceWorkerSubscriptionStatus();
                         this._showToast('You are already unsubscribed from notifications');
                     }
                 } catch (error) {
@@ -189,6 +271,8 @@ class App {
                     
                     if (!result.error) {
                         this.#notificationSubscribed = true;
+                        localStorage.setItem('pushNotificationStatus', 'subscribed');
+                        this._updateServiceWorkerSubscriptionStatus();
                         this._showToast('Subscribed to notifications successfully');
                         
                         const registration = await navigator.serviceWorker.ready;

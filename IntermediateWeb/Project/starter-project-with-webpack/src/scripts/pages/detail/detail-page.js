@@ -61,12 +61,40 @@ export default class DetailPage {
 
         const actionsContainer = document.querySelector('.story-detail__actions');
         if (actionsContainer) {
+            const backButton = actionsContainer.querySelector('button');
+            
             const bookmarkButton = document.createElement('button');
             bookmarkButton.id = 'bookmark-button';
             bookmarkButton.className = `btn ${isBookmarked ? 'btn-success' : 'btn-primary'} bookmark-button`;
-            bookmarkButton.innerHTML = isBookmarked ? 
-                '<i class="fas fa-bookmark"></i> Bookmarked' : 
-                '<i class="far fa-bookmark"></i> Bookmark';
+            
+            if (backButton) {
+                const backButtonStyle = window.getComputedStyle(backButton);
+                
+                bookmarkButton.style.width = backButtonStyle.width;
+                bookmarkButton.style.height = backButtonStyle.height;
+                bookmarkButton.style.padding = backButtonStyle.padding;
+                bookmarkButton.style.fontSize = backButtonStyle.fontSize;
+                bookmarkButton.style.lineHeight = backButtonStyle.lineHeight;
+                bookmarkButton.style.display = 'inline-flex';
+                bookmarkButton.style.alignItems = 'center';
+                bookmarkButton.style.justifyContent = 'center';
+            }
+            
+            const bookmarkIconImg = document.createElement('img');
+            bookmarkIconImg.src = '/images/icons/bookmark-x512.png';
+            bookmarkIconImg.alt = 'Bookmark';
+            bookmarkIconImg.className = 'bookmark-icon';
+            bookmarkIconImg.style.width = '18px';
+            bookmarkIconImg.style.height = '18px';
+            bookmarkIconImg.style.marginRight = '8px';
+            bookmarkIconImg.style.verticalAlign = 'middle';
+            
+            const bookmarkText = document.createElement('span');
+            bookmarkText.textContent = isBookmarked ? 'Bookmarked' : 'Bookmark';
+            
+            bookmarkButton.innerHTML = '';
+            bookmarkButton.appendChild(bookmarkIconImg);
+            bookmarkButton.appendChild(bookmarkText);
             
             bookmarkButton.addEventListener('click', () => this._handleBookmarkClick(story, bookmarkButton));
             
@@ -85,8 +113,23 @@ export default class DetailPage {
             if (isBookmarked) {
                 const success = await BookmarkDB.delete(story.id);
                 if (success) {
-                    bookmarkButton.innerHTML = '<i class="far fa-bookmark"></i> Bookmark';
+                    const bookmarkText = bookmarkButton.querySelector('span');
+                    bookmarkText.textContent = 'Bookmark';
                     bookmarkButton.className = 'btn btn-primary bookmark-button';
+                    
+                    const backButton = document.querySelector('.story-detail__actions button:not(#bookmark-button)');
+                    if (backButton) {
+                        const backButtonStyle = window.getComputedStyle(backButton);
+                        bookmarkButton.style.width = backButtonStyle.width;
+                        bookmarkButton.style.height = backButtonStyle.height;
+                        bookmarkButton.style.padding = backButtonStyle.padding;
+                        bookmarkButton.style.fontSize = backButtonStyle.fontSize;
+                        bookmarkButton.style.lineHeight = backButtonStyle.lineHeight;
+                        bookmarkButton.style.display = 'inline-flex';
+                        bookmarkButton.style.alignItems = 'center';
+                        bookmarkButton.style.justifyContent = 'center';
+                    }
+                    
                     this._showToast('Story removed from bookmarks');
                 } else {
                     this._showToast('Failed to remove story from bookmarks', false);
@@ -94,8 +137,23 @@ export default class DetailPage {
             } else {
                 const success = await BookmarkDB.save(story);
                 if (success) {
-                    bookmarkButton.innerHTML = '<i class="fas fa-bookmark"></i> Bookmarked';
+                    const bookmarkText = bookmarkButton.querySelector('span');
+                    bookmarkText.textContent = 'Bookmarked';
                     bookmarkButton.className = 'btn btn-success bookmark-button';
+                    
+                    const backButton = document.querySelector('.story-detail__actions button:not(#bookmark-button)');
+                    if (backButton) {
+                        const backButtonStyle = window.getComputedStyle(backButton);
+                        bookmarkButton.style.width = backButtonStyle.width;
+                        bookmarkButton.style.height = backButtonStyle.height;
+                        bookmarkButton.style.padding = backButtonStyle.padding;
+                        bookmarkButton.style.fontSize = backButtonStyle.fontSize;
+                        bookmarkButton.style.lineHeight = backButtonStyle.lineHeight;
+                        bookmarkButton.style.display = 'inline-flex';
+                        bookmarkButton.style.alignItems = 'center';
+                        bookmarkButton.style.justifyContent = 'center';
+                    }
+                    
                     this._showToast('Story added to bookmarks');
                 } else {
                     this._showToast('Failed to add story to bookmarks', false);
