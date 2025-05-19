@@ -1,66 +1,118 @@
 {
+    "id": "/#/",
+    "start_url": "/#/",
+    "scope": "/",
     "name": "Story App",
     "short_name": "StoryApp",
-    "description": "Share your stories with the world",
-    "start_url": "/index.html",
+    "description": "Aplikasi Story App memungkinkan pengguna untuk berbagi cerita singkat berupa teks dan foto secara mudah. Dengan aplikasi ini, pengguna dapat mendokumentasikan momen penting, menjelajahi cerita dari pengguna lain, dan membangun komunitas melalui pengalaman pribadi yang dibagikan.",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#2196f3",
+    "background_color": "#FFFFFF",
+    "theme_color": "#ECBB1A",
     "icons": [
-            {
-                "src": "/icons/icon-72x72.png",
-                "sizes": "72x72",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-96x96.png",
-                "sizes": "96x96",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-128x128.png",
-                "sizes": "128x128",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-144x144.png",
-                "sizes": "144x144",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-152x152.png",
-                "sizes": "152x152",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-192x192.png",
-                "sizes": "192x192",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-384x384.png",
-                "sizes": "384x384",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/icon-512x512.png",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/icons/maskable-icon.png",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "maskable"
-            }
+        {
+            "src": "images/icons/icon-x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "images/icons/maskable-icon-x48.png", 
+            "sizes": "48x48",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "images/icons/maskable-icon-x96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "images/icons/maskable-icon-x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "images/icons/maskable-icon-x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "images/icons/maskable-icon-x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "images/screenshots/StoryAppDesktop_001.png",
+            "sizes": "1280x800",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "images/screenshots/StoryAppDesktop_002.png",
+            "sizes": "1280x800",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "images/screenshots/StoryAppDesktop_003.png",
+            "sizes": "1280x800",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "images/screenshots/StoryAppDesktop_004.png",
+            "sizes": "1280x800",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "images/screenshots/StoryAppDesktop_005.png",
+            "sizes": "1280x800",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "images/screenshots/StoryAppMobile_001.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "images/screenshots/StoryAppMobile_002.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "images/screenshots/StoryAppMobile_003.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "images/screenshots/StoryAppMobile_004.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "images/screenshots/StoryAppMobile_005.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "images/screenshots/StoryAppMobile_006.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
     ],
     "shortcuts": [
         {
@@ -70,24 +122,11 @@
             "url": "/#/add",
             "icons": [
                 {
-                    "src": "/icons/add-story-icon-192x192.png",
-                    "sizes": "192x192"
+                    "src": "images/icons/add-x512.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
                 }
             ]
-        }
-    ],
-    "screenshots": [
-        {
-            "src": "/screenshots/desktop-screenshot.png",
-            "sizes": "1280x800",
-            "type": "image/png",
-            "form_factor": "wide"
-        },
-        {
-            "src": "/screenshots/mobile-screenshot.png",
-            "sizes": "720x1280",
-            "type": "image/png",
-            "form_factor": "narrow"
         }
     ]
 }
