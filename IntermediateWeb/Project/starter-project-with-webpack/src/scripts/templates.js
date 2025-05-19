@@ -159,7 +159,7 @@ export function generateAddStoryButtonTemplate() {
 export function generateMainNavigationListTemplate() {
     return `
         <li><a id="stories-list-button" class="stories-list-button" href="#/">Stories</a></li>
-        <li><a id="about-button" class="about-button" href="#/about">About</a></li>
+        <li><a id="bookmark-button" class="bookmark-button" href="#/bookmark">Bookmark</a></li>
     `;
 }
 

@@ -226,7 +226,7 @@ class App {
         } else if (getAccessToken()) {
             this.#navList.innerHTML = `
                 <li><a href="#/">Home</a></li>
-                <li><a href="#/about">About</a></li>
+                <li><a href="#/bookmark">Bookmark</a></li>
                 <li><a href="#" id="notification-button">${this.#notificationSubscribed ? 'Unsubscribe' : 'Subscribe'}</a></li>
                 <li><a href="#" id="logout-button">Logout</a></li>
             `;
@@ -305,7 +305,7 @@ class App {
         const pathMap = {
             '': 'Home',
             '/': 'Home',
-            '/about': 'About',
+            '/bookmark': 'Bookmark',
             '/login': 'Login',
             '/register': 'Register',
         };
