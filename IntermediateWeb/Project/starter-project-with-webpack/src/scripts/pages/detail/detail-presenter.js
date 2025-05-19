@@ -2,17 +2,26 @@ export default class DetailPresenter {
     #storyId;
     #view;
     #model;
+    #bookmarkModel;
 
-    constructor(storyId, { view, model }) {
+    constructor(storyId, { view, model, bookmarkModel }) {
         this.#storyId = storyId;
         this.#view = view;
         this.#model = model;
+        this.#bookmarkModel = bookmarkModel;
     }
 
     async showStoryDetail() {
         this.#view.showStoryDetailLoading();
 
         try {
+            const bookmarkedStory = await this.#bookmarkModel.get(this.#storyId);
+
+            if (bookmarkedStory) {
+                this.#view.populateStoryDetail('Story loaded from bookmarks', bookmarkedStory);
+                return;
+            }
+
             const response = await this.#model.getDetailStory(this.#storyId);
 
             if (!response.ok) {

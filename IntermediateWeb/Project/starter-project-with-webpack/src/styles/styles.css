@@ -253,7 +253,7 @@ header {
     background-color: var(--primary-color);
 }
   
-  /* ---- Stories List ---- */
+/* ---- Stories List ---- */
 .add-story-container {
     margin-bottom: 2rem;
     text-align: right;
@@ -336,6 +336,11 @@ header {
 }
   
 .story-item__read-more {
+    align-self: flex-start;
+    margin-top: auto;
+}
+
+.story-item__remove {
     align-self: flex-start;
     margin-top: auto;
 }
