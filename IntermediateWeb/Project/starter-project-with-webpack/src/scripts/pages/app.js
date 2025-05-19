@@ -304,8 +304,9 @@ class App {
         const currentPath = getActivePathname();
 
         const isAuthPage = currentPath === '/login' || currentPath === '/register';
+        const isNotFoundPage = currentPath === '/not-found';
 
-        if (isAuthPage) {
+        if (isAuthPage || isNotFoundPage) {
             this.#navList.innerHTML = '';
         } else if (getAccessToken()) {
             this.#navList.innerHTML = `
@@ -377,11 +378,7 @@ class App {
                 window.scrollTo({ top: 0, behavior: 'instant' });
             }
         } else {
-            if (!getAccessToken()) {
-                location.hash = '/login';
-            } else {
-                location.hash = '/';
-            }
+            location.hash = '/not-found';
         }
     }
 
@@ -392,6 +389,7 @@ class App {
             '/bookmark': 'Bookmark',
             '/login': 'Login',
             '/register': 'Register',
+            '/not-found': 'Not Found',
         };
 
         if (pathMap[url]) {
