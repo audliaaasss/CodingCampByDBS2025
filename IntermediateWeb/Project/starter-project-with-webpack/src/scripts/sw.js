@@ -7,6 +7,19 @@ precacheAndRoute(self.__WB_MANIFEST || []);
 
 let isSubscribed = false;
 
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        self.registration.pushManager.getSubscription()
+            .then(subscription => {
+                isSubscribed = !!subscription;
+                console.log('Service Worker installed, subscription status:', isSubscribed);
+            })
+            .catch(err => {
+                console.error('Error checking subscription on install:', err);
+            })
+    );
+});
+
 registerRoute(
     ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
     new StaleWhileRevalidate({
@@ -79,13 +92,24 @@ registerRoute(
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        clients.matchAll().then(clientList => {
-            clientList.forEach(client => {
-                client.postMessage({
-                    type: 'CHECK_SUBSCRIPTION_STATUS'
+        Promise.all([
+            self.registration.pushManager.getSubscription()
+                .then(subscription => {
+                    isSubscribed = !!subscription;
+                    console.log('Service Worker activated, subscription status:', isSubscribed);
+                })
+                .catch(err => {
+                    console.error('Error checking subscription on activate:', err);
+                }),
+
+            clients.matchAll().then(clientList => {
+                clientList.forEach(client => {
+                    client.postMessage({
+                        type: 'CHECK_SUBSCRIPTION_STATUS'
+                    });
                 });
-            });
-        })
+            })
+        ])
     );
 });
 
@@ -160,9 +184,24 @@ self.addEventListener('message', (event) => {
         console.log('Service Worker: Setting subscription status', event.data.isSubscribed);
         isSubscribed = event.data.isSubscribed;
     } else if (event.data && event.data.type === 'CHECK_SUBSCRIPTION_STATUS') {
-        event.source.postMessage({
-            type: 'GET_SUBSCRIPTION_STATUS'
-        });
+        self.registration.pushManager.getSubscription()
+            .then(subscription => {
+                isSubscribed = !!subscription;
+                event.source.postMessage({
+                    type: 'SUBSCRIPTION_STATUS_RESPONSE',
+                    isSubscribed: isSubscribed,
+                    subscription: subscription
+                });
+            })
+            .catch(err => {
+                console.error('Error checking subscription:', err);
+                event.source.postMessage({
+                    type: 'SUBSCRIPTION_STATUS_RESPONSE',
+                    isSubscribed: false,
+                    subscription: null
+                });
+            });
+
     } else if (event.data && event.data.type === 'SIMULATE_PUSH') {
         console.log('Service Worker: Simulating push message');
         

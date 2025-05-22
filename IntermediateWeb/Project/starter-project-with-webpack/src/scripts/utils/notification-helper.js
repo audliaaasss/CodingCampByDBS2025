@@ -31,6 +31,44 @@ const NotificationHelper = {
         }
     },
 
+    async sendSubscriptionToServer(subscription, action = 'subscribe') {
+        if (!CONFIG.API_BASE_URL && !CONFIG.ENABLE_SERVER_PUSH) {
+            console.log('Server push disabled, skipping server registration');
+            return { success: true, data: { message: 'Server registration skipped' } };
+        }
+
+        try {
+            const endpoint = `${CONFIG.API_BASE_URL || '/api'}/push-subscription`;
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+                },
+                body: JSON.stringify({
+                    action: action, 
+                    subscription: subscription,
+                    userAgent: navigator.userAgent,
+                    timestamp: Date.now()
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Subscription sent to server successfully:', result);
+            return { success: true, data: result };
+        } catch (error) {
+            console.error('Error sending subscription to server:', error);
+
+            console.warn('Continuing with local subscription despite server error');
+            return { success: false, error: error.message, skipError: true };
+        }
+    },
+
     async subscribe() {
         const hasPermission = await this.requestPermission();
         if (!hasPermission) {
@@ -49,10 +87,26 @@ const NotificationHelper = {
 
             const existingSubscription = await registration.pushManager.getSubscription();
             if (existingSubscription) {
+                const serverResult = await this.sendSubscriptionToServer(existingSubscription, 'subscribe');
+                if (!serverResult.success && !serverResult.skipError) {
+                    console.warn('Failed to register existing subscription with server:', serverResult.error);
+                }
+                
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'SUBSCRIPTION_STATUS',
+                        isSubscribed: true,
+                        timestamp: Date.now()
+                    });
+                }
+                
+                localStorage.setItem('pushNotificationStatus', 'subscribed');
+                
                 return { 
                     error: false, 
                     message: 'Already subscribed', 
-                    subscription: existingSubscription 
+                    subscription: existingSubscription,
+                    serverRegistered: serverResult.success
                 };
             }
 
@@ -68,6 +122,16 @@ const NotificationHelper = {
                 });
                 
                 console.log('New subscription created:', subscription);
+                
+                const serverResult = await this.sendSubscriptionToServer(subscription, 'subscribe');
+                if (!serverResult.success && !serverResult.skipError) {
+                    console.error('Failed to register subscription with server:', serverResult.error);
+
+                    if (!serverResult.error.includes('404')) {
+                        await subscription.unsubscribe();
+                        return { error: true, message: `Server registration failed: ${serverResult.error}` };
+                    }
+                }
                 
                 try {
                     const { getAllStories } = await import('../data/api');
@@ -86,7 +150,20 @@ const NotificationHelper = {
 
                 localStorage.setItem('pushNotificationStatus', 'subscribed');
                 
-                return { error: false, message: 'Subscribed successfully', subscription };
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'SUBSCRIPTION_STATUS',
+                        isSubscribed: true,
+                        timestamp: Date.now()
+                    });
+                }
+                
+                return { 
+                    error: false, 
+                    message: 'Subscribed successfully', 
+                    subscription,
+                    serverRegistered: serverResult.success || serverResult.skipError
+                };
             } catch (subscribeError) {
                 console.error('Push Manager subscribe error:', subscribeError);
                 return { error: true, message: `Subscription error: ${subscribeError.message}` };
@@ -104,6 +181,11 @@ const NotificationHelper = {
                 return { error: false, message: 'Not currently subscribed' };
             }
 
+            const serverResult = await this.sendSubscriptionToServer(subscription, 'unsubscribe');
+            if (!serverResult.success) {
+                console.warn('Failed to unregister subscription from server:', serverResult.error);
+            }
+
             await subscription.unsubscribe();
             
             localStorage.setItem('pushNotificationStatus', 'unsubscribed');
@@ -115,10 +197,88 @@ const NotificationHelper = {
                 });
             }
 
-            return { error: false, message: 'Unsubscribed successfully' };
+            return { 
+                error: false, 
+                message: 'Unsubscribed successfully',
+                serverUnregistered: serverResult.success
+            };
         } catch (error) {
             console.error('Error unsubscribing from push notifications:', error);
             return { error: true, message: `Unsubscribe failed: ${error.message}` };
+        }
+    },
+
+    async checkSubscriptionStatus() {
+        try {
+            const subscription = await this.getSubscription();
+            const isSubscribed = !!subscription;
+            
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'SUBSCRIPTION_STATUS',
+                    isSubscribed: isSubscribed,
+                    timestamp: Date.now()
+                });
+            }
+            
+            localStorage.setItem('pushNotificationStatus', isSubscribed ? 'subscribed' : 'unsubscribed');
+            
+            return {
+                isSubscribed,
+                subscription,
+                permission: Notification.permission
+            };
+        } catch (error) {
+            console.error('Error checking subscription status:', error);
+            return {
+                isSubscribed: false,
+                subscription: null,
+                permission: Notification.permission,
+                error: error.message
+            };
+        }
+    },
+
+    async testNotification(title = 'Test Notification', message = 'This is a test notification') {
+        try {
+            const status = await this.checkSubscriptionStatus();
+            if (!status.isSubscribed) {
+                return { error: true, message: 'Not subscribed to push notifications' };
+            }
+
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'SIMULATE_PUSH',
+                    title: title,
+                    message: message,
+                    url: window.location.href,
+                    timestamp: Date.now()
+                });
+                
+                return { error: false, message: 'Test notification sent' };
+            } else {
+                return { error: true, message: 'Service worker not available' };
+            }
+        } catch (error) {
+            console.error('Error sending test notification:', error);
+            return { error: true, message: `Test notification failed: ${error.message}` };
+        }
+    },
+
+    setupMessageListener() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                console.log('Received message from service worker:', event.data);
+                
+                if (event.data && event.data.type === 'SUBSCRIPTION_STATUS_RESPONSE') {
+                    const { isSubscribed, subscription } = event.data;
+                    localStorage.setItem('pushNotificationStatus', isSubscribed ? 'subscribed' : 'unsubscribed');
+                    
+                    window.dispatchEvent(new CustomEvent('subscriptionStatusChanged', {
+                        detail: { isSubscribed, subscription }
+                    }));
+                }
+            });
         }
     },
 
@@ -138,5 +298,7 @@ const NotificationHelper = {
         return outputArray;
     },
 };
+
+NotificationHelper.setupMessageListener();
 
 export default NotificationHelper;
