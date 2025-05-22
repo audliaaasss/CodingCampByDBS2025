@@ -1,0 +1,24 @@
+import js from '@eslint/js';
+import globals from 'globals';
+import { defineConfig } from 'eslint/config';
+import daStyle from 'eslint-config-dicodingacademy';
+
+export default defineConfig([
+  js.configs.recommended,
+  daStyle,
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs'
+    }
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    }
+  },
+]);
